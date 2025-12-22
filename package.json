@@ -2,7 +2,7 @@
   "name": "codevoyage-highlight",
   "displayName": "#CodeVoyage",
   "description": "Track your coding journey and visualize weekly, monthly, and yearly coding statistics in a beautiful presentation",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "tsukumon",
   "icon": "images/icon.png",
   "galleryBanner": {
@@ -85,11 +85,12 @@
     "publish": "vsce publish"
   },
   "devDependencies": {
-    "@types/vscode": "^1.74.0",
     "@types/node": "^18.x",
-    "typescript": "^5.0.0",
+    "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0"
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
   }
 }

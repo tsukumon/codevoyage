@@ -3,8 +3,9 @@
 **Your coding journey, beautifully visualized.**
 
 Track your coding time effortlessly and relive your programming adventures with beautiful visual reviews.
+like Youtube Recap, Spotify Wrapped.
 
-![CodeVoyage Dashboard](images/demo.gif)
+![CodeVoyage Dashboard](https://raw.githubusercontent.com/tsukumon/codevoyage/refs/heads/main/images/demo.gif)
 
 ---
 

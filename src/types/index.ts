@@ -205,6 +205,12 @@ export type CodingStyleId =
   | 'language_explorer' // 複数言語を使用
   | 'specialist'        // 1言語に特化
   | 'consistent'        // 連続してコーディング
+  // 年間専用スタイル
+  | 'annual_champion'   // 年間チャンピオン（500時間以上）
+  | 'growth_star'       // 成長の星（新言語3つ以上）
+  | 'seasonal_master'   // 四季の達人（全四半期で活動）
+  | 'project_architect' // プロジェクト建築家（10プロジェクト以上）
+  | 'code_explorer'     // コード探検家（1000ファイル以上）
   ;
 
 /**
@@ -218,4 +224,6 @@ export interface CodingStyle {
   title: string;
   description: string;  // ニュートラルな説明（評価ではない）
   observation: string;  // 実際に観察されたデータ
+  isMaster?: boolean;        // マスター版かどうか（年間専用、進化した絵文字）
+  isYearlyExclusive?: boolean; // 年間専用スタイルかどうか
 }

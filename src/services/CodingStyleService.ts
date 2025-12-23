@@ -4,7 +4,8 @@ import {
   YearlySummary,
   CodingStyle,
   CodingStyleId,
-  DailyStats
+  DailyStats,
+  MonthBreakdown
 } from '../types';
 import { formatDuration } from '../utils/dateUtils';
 
@@ -269,5 +270,257 @@ export class CodingStyleService {
   private calculateWeekendTime(dayOfWeekDistribution: number[]): number {
     // 土日（インデックス0と6）
     return (dayOfWeekDistribution[0] || 0) + (dayOfWeekDistribution[6] || 0);
+  }
+
+  // ========================================
+  // 年間専用スタイル検出
+  // ========================================
+
+  /**
+   * 年間サマリー専用のスタイル検出
+   * ※通常スタイルは使用しない、表示数の上限なし
+   */
+  public detectYearlyStyles(summary: YearlySummary): CodingStyle[] {
+    const styles: CodingStyle[] = [];
+
+    // 1. 年間専用スタイルを検出
+    this.detectYearlyExclusiveStyles(summary, styles);
+
+    // 2. マスター版スタイルを検出（厳しい閾値、進化した絵文字）
+    this.detectMasterStyles(summary, styles);
+
+    // ※通常スタイルは年間では使用しない
+    // ※表示数の上限なし（すべて表示）
+    return styles;
+  }
+
+  /**
+   * 年間専用スタイルを検出（年間レビューでのみ表示）
+   */
+  private detectYearlyExclusiveStyles(summary: YearlySummary, styles: CodingStyle[]): void {
+    const totalHours = summary.totalCodingTimeMs / (1000 * 60 * 60);
+
+    // 年間チャンピオン: 500時間以上
+    if (totalHours >= 500) {
+      styles.push({
+        id: 'annual_champion',
+        category: 'time',
+        emoji: '🏆',
+        title: '年間チャンピオン',
+        description: '1年間で500時間以上コーディングしました',
+        observation: `${Math.round(totalHours)}時間の記録`,
+        isYearlyExclusive: true
+      });
+    }
+
+    // 成長の星: 新言語3つ以上（languageGrowthのisNewフラグで判定）
+    const newLanguages = summary.languageGrowth?.filter(l => {
+      // 月別使用量の最初の方が0で後の方が使われている = 新言語
+      const monthlyUsage = l.monthlyUsage || [];
+      const firstHalf = monthlyUsage.slice(0, 6).reduce((a, b) => a + b, 0);
+      const secondHalf = monthlyUsage.slice(6).reduce((a, b) => a + b, 0);
+      return firstHalf === 0 && secondHalf > 0;
+    }) || [];
+    if (newLanguages.length >= 3) {
+      styles.push({
+        id: 'growth_star',
+        category: 'exploration',
+        emoji: '📈',
+        title: '成長の星',
+        description: '今年新しい言語に挑戦しました',
+        observation: `${newLanguages.length}言語を新たに習得`,
+        isYearlyExclusive: true
+      });
+    }
+
+    // 四季の達人: 全四半期で活動
+    const quarterlyActivity = this.checkQuarterlyActivity(summary.monthlyBreakdown);
+    if (quarterlyActivity.allActive) {
+      styles.push({
+        id: 'seasonal_master',
+        category: 'rhythm',
+        emoji: '🌸',
+        title: '四季の達人',
+        description: '1年を通じてコンスタントに活動しました',
+        observation: '春夏秋冬すべてで活動',
+        isYearlyExclusive: true
+      });
+    }
+
+    // プロジェクト建築家: 10プロジェクト以上
+    if (summary.topProjects.length >= 10) {
+      styles.push({
+        id: 'project_architect',
+        category: 'focus',
+        emoji: '🏗️',
+        title: 'プロジェクト建築家',
+        description: '多くのプロジェクトに貢献しました',
+        observation: `${summary.topProjects.length}プロジェクト`,
+        isYearlyExclusive: true
+      });
+    }
+
+    // コード探検家: 1000ファイル以上
+    if (summary.totalFilesEdited >= 1000) {
+      styles.push({
+        id: 'code_explorer',
+        category: 'focus',
+        emoji: '🧭',
+        title: 'コード探検家',
+        description: '膨大なコードベースを探索しました',
+        observation: `${summary.totalFilesEdited}ファイル編集`,
+        isYearlyExclusive: true
+      });
+    }
+  }
+
+  /**
+   * マスター版スタイルを検出（通常スタイルの進化版、より厳しい閾値）
+   */
+  private detectMasterStyles(summary: YearlySummary, styles: CodingStyle[]): void {
+    const activeDays = summary.dailyBreakdown.filter(d => d.totalTimeMs > 0).length;
+    const longestSessionHours = summary.longestSessionMs / (1000 * 60 * 60);
+
+    // マスター版: 昇龍の歩み（200日以上）🐢→🐉
+    if (activeDays >= 200) {
+      styles.push({
+        id: 'steady_coder',
+        category: 'time',
+        emoji: '🐉',
+        title: '昇龍の歩み',
+        description: '1年を通じて着実にコーディングを続け、龍のごとく昇りつめました',
+        observation: `${activeDays}日間コーディング`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 超人ランナー（6時間以上）🏃→🦸
+    if (longestSessionHours >= 6) {
+      styles.push({
+        id: 'marathon_runner',
+        category: 'time',
+        emoji: '🦸',
+        title: '超人ランナー',
+        description: '人間離れした集中力を発揮しました',
+        observation: `最長${formatDuration(summary.longestSessionMs)}`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 闇夜の支配者（40%以上）🦉→🧛
+    if (summary.nightOwlPercentage >= 40) {
+      styles.push({
+        id: 'night_owl',
+        category: 'rhythm',
+        emoji: '🧛',
+        title: '闇夜の支配者',
+        description: '夜の世界を完全に支配しています',
+        observation: `${Math.round(summary.nightOwlPercentage)}%が22時以降`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 不滅の炎（30日連続以上）🔥→🌋
+    if (summary.streakDays >= 30) {
+      styles.push({
+        id: 'consistent',
+        category: 'exploration',
+        emoji: '🌋',
+        title: '不滅の炎',
+        description: '火山のように絶えることなく燃え続けました',
+        observation: `${summary.streakDays}日連続`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 黎明の覇者（30%以上）🐓→🌅
+    const morningTime = this.calculateTimeRange(summary.hourlyDistribution, 6, 9);
+    const totalTime = summary.hourlyDistribution.reduce((a, b) => a + b, 0);
+    if (totalTime > 0 && morningTime / totalTime >= 0.3) {
+      styles.push({
+        id: 'early_bird',
+        category: 'rhythm',
+        emoji: '🌅',
+        title: '黎明の覇者',
+        description: '朝の光とともに目覚め、一日を制しました',
+        observation: `${Math.round(morningTime / totalTime * 100)}%が朝の時間帯`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 一途の極み（80%以上）🎯→💎
+    if (summary.topProjects.length > 0 && summary.topProjects[0].percentage >= 80) {
+      styles.push({
+        id: 'deep_focus',
+        category: 'focus',
+        emoji: '💎',
+        title: '一途の極み',
+        description: 'ダイヤモンドのように一点に輝きを集中させました',
+        observation: `${summary.topProjects[0].name}に${Math.round(summary.topProjects[0].percentage)}%`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 銀河の開拓者（6言語以上）🌍→🚀
+    const usedLanguages = summary.topLanguages.filter(l => l.percentage >= 5);
+    if (usedLanguages.length >= 6) {
+      styles.push({
+        id: 'language_explorer',
+        category: 'exploration',
+        emoji: '🚀',
+        title: '銀河の開拓者',
+        description: '宇宙を旅するように多くの言語を開拓しました',
+        observation: `${usedLanguages.length}言語を使用`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 言語の魔術師（90%以上）🔬→🧙
+    if (summary.topLanguages.length > 0 && summary.topLanguages[0].percentage >= 90) {
+      styles.push({
+        id: 'specialist',
+        category: 'exploration',
+        emoji: '🧙',
+        title: '言語の魔術師',
+        description: '一つの言語を極め、魔法のように操ります',
+        observation: `${summary.topLanguages[0].displayName}が${Math.round(summary.topLanguages[0].percentage)}%`,
+        isMaster: true
+      });
+    }
+
+    // マスター版: 八面六臂の極意（5プロジェクト以上で各15%以上）🎪→🎭
+    const activeProjects = summary.topProjects.filter(p => p.percentage >= 15);
+    if (activeProjects.length >= 5) {
+      styles.push({
+        id: 'multi_tasker',
+        category: 'focus',
+        emoji: '🎭',
+        title: '八面六臂の極意',
+        description: '多くのプロジェクトを同時に操る達人です',
+        observation: `${activeProjects.length}つのプロジェクトを並行`,
+        isMaster: true
+      });
+    }
+  }
+
+  /**
+   * 四半期ごとの活動をチェック
+   */
+  private checkQuarterlyActivity(monthlyBreakdown: MonthBreakdown[]): { allActive: boolean; quarters: boolean[] } {
+    // Q1: 1-3月, Q2: 4-6月, Q3: 7-9月, Q4: 10-12月
+    const quarters = [false, false, false, false];
+
+    for (const month of monthlyBreakdown) {
+      const monthNum = month.month;
+      if (monthNum >= 1 && monthNum <= 3 && month.totalTimeMs > 0) quarters[0] = true;
+      if (monthNum >= 4 && monthNum <= 6 && month.totalTimeMs > 0) quarters[1] = true;
+      if (monthNum >= 7 && monthNum <= 9 && month.totalTimeMs > 0) quarters[2] = true;
+      if (monthNum >= 10 && monthNum <= 12 && month.totalTimeMs > 0) quarters[3] = true;
+    }
+
+    return {
+      allActive: quarters.every(q => q),
+      quarters
+    };
   }
 }

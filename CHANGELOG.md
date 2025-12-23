@@ -4,9 +4,6 @@ All notable changes to CodeVoyage will be documented in this file.
 
 ## [1.0.3] - 2024-12-23
 
-### Added
-- Language setting (Japanese/English) - configurable via `codevoyage.language`
-
 ### Fixed
 - Responsive scaling for narrow panel widths - UI now scales down automatically when the webview panel is smaller than 944px
 

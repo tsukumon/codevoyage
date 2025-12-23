@@ -437,9 +437,11 @@ export function generateMockYearlySummary(yearOffset: number = 0): YearlySummary
 /**
  * モックのコーディングスタイルを生成
  * ※これらは「達成」ではなく「観察されたパターン」として表現
+ * 月間: 通常スタイル（最大4つ）
+ * 年間: 年間専用スタイル + マスター版スタイルのみ（上限なし）
  */
 function generateMockCodingStyles(period: 'month' | 'year'): CodingStyle[] {
-  // 月間と年間で少し異なるスタイルを返す
+  // 月間: 通常スタイルのみ
   if (period === 'month') {
     return [
       {
@@ -468,38 +470,72 @@ function generateMockCodingStyles(period: 'month' | 'year'): CodingStyle[] {
       }
     ];
   } else {
+    // 年間: 年間専用スタイル + マスター版スタイルのみ
     return [
+      // 年間専用スタイル
+      {
+        id: 'annual_champion',
+        category: 'time',
+        emoji: '🏆',
+        title: '年間チャンピオン',
+        description: '1年間で膨大な時間をコーディングに捧げました',
+        observation: '523時間の記録',
+        isYearlyExclusive: true
+      },
+      {
+        id: 'seasonal_master',
+        category: 'rhythm',
+        emoji: '🌸',
+        title: '四季の達人',
+        description: '1年を通じてコンスタントに活動しました',
+        observation: '春夏秋冬すべてで活動',
+        isYearlyExclusive: true
+      },
+      {
+        id: 'code_explorer',
+        category: 'focus',
+        emoji: '🧭',
+        title: 'コード探検家',
+        description: '膨大なコードベースを探索しました',
+        observation: '1,247ファイル編集',
+        isYearlyExclusive: true
+      },
+      // マスター版スタイル
       {
         id: 'marathon_runner',
         category: 'time',
-        emoji: '🏃',
-        title: '耐久レースの覇者',
-        description: '長めのセッションでじっくり取り組む時間がありました',
-        observation: '最長6h 30m'
+        emoji: '🦸',
+        title: '超人ランナー',
+        description: '人間離れした集中力を発揮しました',
+        observation: '最長6h 30m',
+        isMaster: true
       },
       {
         id: 'consistent',
         category: 'exploration',
-        emoji: '🔥',
-        title: '継続の鬼',
-        description: '連続してコーディングを続けていました',
-        observation: '45日連続'
+        emoji: '🌋',
+        title: '不滅の炎',
+        description: '火山のように絶えることなく燃え続けました',
+        observation: '45日連続',
+        isMaster: true
+      },
+      {
+        id: 'steady_coder',
+        category: 'time',
+        emoji: '🐉',
+        title: '昇龍の歩み',
+        description: '1年を通じて着実にコーディングを続け、龍のごとく昇りつめました',
+        observation: '248日間コーディング',
+        isMaster: true
       },
       {
         id: 'language_explorer',
         category: 'exploration',
-        emoji: '🌍',
-        title: '言語の旅人さん',
-        description: '複数の言語を使ってコーディングしていました',
-        observation: '5言語を使用'
-      },
-      {
-        id: 'multi_tasker',
-        category: 'focus',
-        emoji: '🎪',
-        title: '八面六臂の使い手',
-        description: '複数のプロジェクトを並行して進めていました',
-        observation: '4つのプロジェクト'
+        emoji: '🚀',
+        title: '銀河の開拓者',
+        description: '宇宙を旅するように多くの言語を開拓しました',
+        observation: '6言語を使用',
+        isMaster: true
       }
     ];
   }

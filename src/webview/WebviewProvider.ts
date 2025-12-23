@@ -2404,6 +2404,51 @@ export class WebviewProvider {
         letter-spacing: 0.03em;
       }
 
+      /* === マスター版スタイルの特別な装飾 === */
+      .individual-style-slide.master-style .style-emoji {
+        filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.6));
+      }
+
+      .individual-style-slide.master-style .icon-backdrop {
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.3) 0%, transparent 70%);
+      }
+
+      .individual-style-slide.master-style .style-title {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fef3c7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .individual-style-slide.master-style .stat-value {
+        background: rgba(251, 191, 36, 0.15);
+        border-color: rgba(251, 191, 36, 0.35);
+        color: #fbbf24;
+      }
+
+      /* スタイルバッジ共通（タイトル上に中央寄せ） */
+      .style-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      /* 年間専用スタイルのバッジ */
+      .yearly-exclusive-badge {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #1a1a2e;
+      }
+
+      /* マスター版バッジ */
+      .master-badge {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ef4444 100%);
+        color: #1a1a2e;
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+      }
+
       /* === 月間スタイルまとめスライド === */
       .monthly-styles-slide {
         overflow: hidden;
@@ -5342,10 +5387,10 @@ export class WebviewProvider {
     const isMonth = periodType === 'month';
 
     // コーディングスタイルを取得
-    // 月間: 最大4つ（1スライドにまとめて表示）
-    // 年間: 最大5つ（個別スライドで表示）
+    // 月間: 最大4つ（1スライドにまとめて表示、通常スタイルのみ）
+    // 年間: 上限なし（個別スライドで表示、マスター版・年間専用スタイルのみ）
     const codingStyles = ('codingStyles' in summary && summary.codingStyles) ? summary.codingStyles : [];
-    const maxStyles = isYear ? 5 : 4;
+    const maxStyles = isYear ? Infinity : 4;
     const styleCount = Math.min(codingStyles.length, maxStyles);
 
     /*
@@ -5640,9 +5685,9 @@ export class WebviewProvider {
         </div>
 
         ${isYear ? `
-        <!-- 年間用: 個別スタイルスライド（最大5枚） -->
-        ${codingStyles.slice(0, 5).map((style, index) => `
-        <div class="slide individual-style-slide" data-slide="${12 + slideOffset + index}" style="--slide-index: ${index}">
+        <!-- 年間用: 個別スタイルスライド（マスター版・年間専用スタイル、上限なし） -->
+        ${codingStyles.map((style, index) => `
+        <div class="slide individual-style-slide${style.isMaster ? ' master-style' : ''}" data-slide="${12 + slideOffset + index}" style="--slide-index: ${index}">
           <!-- 背景レイヤー -->
           <div class="style-slide-bg">
             <div class="mesh-gradient"></div>
@@ -5676,6 +5721,8 @@ export class WebviewProvider {
 
             <!-- タイトルエリア -->
             <div class="style-title-area">
+              ${style.isYearlyExclusive ? '<div class="style-badge yearly-exclusive-badge">✨ 年間限定</div>' : ''}
+              ${style.isMaster ? '<div class="style-badge master-badge">🏆 マスター</div>' : ''}
               <h2 class="style-title">${style.title}</h2>
               <div class="title-underline"></div>
             </div>

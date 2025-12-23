@@ -445,8 +445,8 @@ export class StatisticsService {
       comparisonToPreviousYear
     };
 
-    // コーディングスタイルを検出
-    const codingStyles = this.codingStyleService.detectStyles(baseSummary as WeeklySummary);
+    // コーディングスタイルを検出（年間専用メソッドを使用）
+    const codingStyles = this.codingStyleService.detectYearlyStyles(baseSummary as YearlySummary);
 
     return {
       ...baseSummary,

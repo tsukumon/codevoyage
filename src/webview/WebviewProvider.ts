@@ -337,6 +337,23 @@ export class WebviewProvider {
                 vscode.postMessage({ command: 'selectPeriod', period: period });
             }, 1800);
         }
+
+        // 画面幅に応じてコンテンツをスケーリング
+        function adjustScale() {
+            const baseWidth = 944; // カードが折り返されない最小幅
+            const content = document.querySelector('.selection-content');
+            const viewportWidth = window.innerWidth;
+
+            if (viewportWidth < baseWidth) {
+                const scale = viewportWidth / baseWidth;
+                content.style.zoom = scale;
+            } else {
+                content.style.zoom = 1;
+            }
+        }
+
+        window.addEventListener('resize', adjustScale);
+        adjustScale();
     </script>
 </body>
 </html>`;
@@ -399,6 +416,8 @@ export class WebviewProvider {
         padding: 2rem;
         max-width: 1000px;
         animation: contentFadeIn 0.6s ease-out;
+        transform-origin: center center;
+        transition: transform 0.2s ease;
       }
 
       @keyframes contentFadeIn {
@@ -444,7 +463,6 @@ export class WebviewProvider {
         display: flex;
         gap: 1.25rem;
         justify-content: center;
-        flex-wrap: wrap;
         animation: contentFadeIn 0.6s ease-out 0.3s both;
       }
 
@@ -955,6 +973,8 @@ export class WebviewProvider {
         width: 100%;
         height: 100%;
         position: relative;
+        transform-origin: center center;
+        transition: transform 0.2s ease;
       }
 
       .slide-content {
@@ -1256,8 +1276,8 @@ export class WebviewProvider {
       .coding-styles-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-        max-width: 700px;
+        gap: 0.75rem;
+        max-width: 800px;
         margin: 0 auto;
       }
 
@@ -1266,12 +1286,12 @@ export class WebviewProvider {
         flex-direction: column;
         align-items: center;
         text-align: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
         background: rgba(255, 255, 255, 0.03);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 1.25rem 1rem;
+        border-radius: 12px;
+        padding: 0.875rem 0.75rem;
         transition: all 0.3s ease;
       }
 
@@ -1282,7 +1302,7 @@ export class WebviewProvider {
       }
 
       .style-emoji {
-        font-size: 2rem;
+        font-size: 1.5rem;
         line-height: 1;
         flex-shrink: 0;
       }
@@ -1293,17 +1313,17 @@ export class WebviewProvider {
       }
 
       .style-title {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: var(--text-primary);
-        margin: 0 0 0.4rem 0;
+        margin: 0 0 0.25rem 0;
       }
 
       .style-description {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         color: var(--text-secondary);
-        margin: 0 0 0.5rem 0;
-        line-height: 1.5;
+        margin: 0 0 0.35rem 0;
+        line-height: 1.4;
       }
 
       .style-observation {
@@ -1317,12 +1337,12 @@ export class WebviewProvider {
       }
 
       .coding-style-note {
-        font-size: 0.9rem !important;
+        font-size: 0.8rem !important;
         color: var(--text-secondary) !important;
         max-width: 500px;
-        margin: 2rem auto 0 !important;
+        margin: 1rem auto 0 !important;
         text-align: center;
-        line-height: 1.7;
+        line-height: 1.5;
         opacity: 0.8;
       }
 
@@ -1330,6 +1350,1058 @@ export class WebviewProvider {
         text-align: center;
         color: var(--text-secondary);
         padding: 2rem;
+      }
+
+      /* ========================================
+       * Coding Styles Intro Slide - Dramatic Reveal
+       * ======================================== */
+      .coding-styles-intro-slide {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* 背景エフェクトコンテナ */
+      .intro-bg-effects {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* === 年間用: ゴールデンレイ === */
+      .golden-rays {
+        position: absolute;
+        inset: -50%;
+        background: conic-gradient(
+          from 0deg at 50% 50%,
+          transparent 0deg,
+          rgba(251, 191, 36, 0.03) 10deg,
+          transparent 20deg,
+          rgba(251, 191, 36, 0.05) 30deg,
+          transparent 40deg
+        );
+        animation: rotateRays 30s linear infinite;
+      }
+
+      @keyframes rotateRays {
+        to { transform: rotate(360deg); }
+      }
+
+      .sparkle-field {
+        position: absolute;
+        inset: 0;
+      }
+
+      .bg-sparkle {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: var(--size);
+        height: var(--size);
+        background: #fbbf24;
+        border-radius: 50%;
+        opacity: 0;
+        animation: sparkleFlash 2s ease-in-out var(--delay) infinite;
+      }
+
+      @keyframes sparkleFlash {
+        0%, 100% { opacity: 0; transform: scale(0); }
+        50% { opacity: 1; transform: scale(1); }
+      }
+
+      /* === 月間用: パープルオーロラ === */
+      .purple-aurora {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse 80% 50% at 50% 120%,
+          rgba(168, 85, 247, 0.15) 0%,
+          rgba(139, 92, 246, 0.05) 40%,
+          transparent 70%
+        );
+        animation: auroraBreath 4s ease-in-out infinite;
+      }
+
+      @keyframes auroraBreath {
+        0%, 100% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
+      }
+
+      .floating-orbs {
+        position: absolute;
+        inset: 0;
+      }
+
+      .aurora-orb {
+        position: absolute;
+        left: var(--x);
+        bottom: -20%;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(20px);
+        animation: orbFloat 6s ease-in-out var(--delay) infinite;
+      }
+
+      @keyframes orbFloat {
+        0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+        50% { transform: translateY(-30px) scale(1.1); opacity: 0.6; }
+      }
+
+      /* === 絵文字オービット === */
+      .floating-emojis-container {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .floating-emoji {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        font-size: 1.8rem;
+        opacity: 0;
+        offset-path: ellipse(calc(30% * var(--radius-scale, 1)) calc(26% * var(--radius-scale, 1)) at 50% 50%);
+        offset-rotate: 0deg;
+        transform: translate(var(--pos-offset, 0), var(--pos-offset, 0));
+        animation:
+          floatEmojiIn 0.8s ease-out var(--delay) forwards,
+          orbitEmoji 60s linear var(--delay) infinite;
+        animation-delay:
+          var(--delay),
+          calc(var(--delay) - 60s * var(--index) / var(--total));
+      }
+
+      @keyframes floatEmojiIn {
+        from { opacity: 0; transform: translate(var(--pos-offset, 0), var(--pos-offset, 0)) scale(0); }
+        to { opacity: 0.5; transform: translate(var(--pos-offset, 0), var(--pos-offset, 0)) scale(1); }
+      }
+
+      @keyframes orbitEmoji {
+        from { offset-distance: 0%; }
+        to { offset-distance: 100%; }
+      }
+
+      /* === メインタイトル === */
+      .coding-styles-intro-slide .intro-centered {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100%;
+        z-index: 10;
+        position: relative;
+      }
+
+      .intro-reveal-container {
+        text-align: center;
+        position: relative;
+      }
+
+      /* 年間用: クラウン */
+      .year-crown {
+        font-size: 3rem;
+        opacity: 0;
+        animation: crownDrop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+        margin-bottom: 0.5rem;
+      }
+
+      @keyframes crownDrop {
+        from { opacity: 0; transform: translateY(-30px) scale(0.5); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      /* タイトルラッパー */
+      .intro-title-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+      }
+
+      .intro-line {
+        display: block;
+        font-weight: 700;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .intro-line.line-1 {
+        font-size: 1.4rem;
+        color: var(--text-secondary);
+        animation: lineReveal 0.6s ease-out 0.3s forwards;
+      }
+
+      .intro-line.line-2 {
+        font-size: 2rem;
+        animation: lineReveal 0.6s ease-out 0.5s forwards;
+      }
+
+      .intro-line.line-3 {
+        font-size: 1.6rem;
+        animation: lineReveal 0.6s ease-out 0.7s forwards;
+      }
+
+      @keyframes lineReveal {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* 年間用: タイトルにゴールド */
+      .coding-styles-intro-slide.yearly .intro-line.line-2 {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fef3c7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3));
+      }
+
+      /* 月間用: タイトルにパープル */
+      .coding-styles-intro-slide.monthly .intro-line.line-2 {
+        background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 50%, #c4b5fd 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* パルスリング */
+      .intro-pulse-ring {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 200px;
+        height: 200px;
+        border: 2px solid currentColor;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        animation: pulseRing 3s ease-out 1s infinite;
+      }
+
+      .intro-pulse-ring.ring-2 {
+        animation-delay: 1.5s;
+      }
+
+      .coding-styles-intro-slide.yearly .intro-pulse-ring {
+        border-color: rgba(251, 191, 36, 0.3);
+      }
+
+      .coding-styles-intro-slide.monthly .intro-pulse-ring {
+        border-color: rgba(168, 85, 247, 0.3);
+      }
+
+      @keyframes pulseRing {
+        0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.8); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+      }
+
+      /* Coding Styles Slide - Header Animation */
+      .coding-styles-slide .slide-header {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      .coding-styles-slide .slide-header.visible {
+        opacity: 1;
+        transform: scale(1);
+        transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .coding-styles-slide .slide-message {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      .coding-styles-slide .slide-message.visible {
+        opacity: 1;
+        transform: translateY(0);
+        transition: all 0.5s ease;
+      }
+
+      /* Coding Styles - Category Groups */
+      .coding-styles-container {
+        max-width: 800px;
+        margin: 0 auto;
+        opacity: 0;
+      }
+
+      .coding-styles-container.visible {
+        opacity: 1;
+      }
+
+      .style-category-group {
+        margin-bottom: 1rem;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .style-category-group.visible {
+        opacity: 1;
+        transform: translateY(0);
+        transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .style-category-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 100px;
+      }
+
+      .style-category-label.time { color: #06b6d4; }
+      .style-category-label.rhythm { color: #a855f7; }
+      .style-category-label.focus { color: #f97316; }
+      .style-category-label.exploration { color: #10b981; }
+
+      .style-category-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+      }
+
+      .coding-styles-slide .coding-style-card {
+        opacity: 0;
+        transform: scale(0.8) translateY(10px);
+      }
+
+      .coding-styles-slide .coding-style-card.visible {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      /* ========================================
+       * 年間用カテゴリ別コーディングスタイルスライド
+       * Luxury Celebration × Maximalist Motion
+       * ======================================== */
+      .coding-styles-category-slide {
+        /* position: absolute は .slide から継承 */
+        overflow: hidden;
+        background: rgba(20, 20, 30, 0.95);
+      }
+
+      .coding-styles-category-slide .slide-content {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--text-primary);
+      }
+
+      /* 背景エフェクト共通 */
+      .category-bg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .category-bg .bg-effect-layer {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* === TIME: ゴールド＋歯車回転 === */
+      .category-time .category-bg {
+        background: radial-gradient(ellipse at 50% 0%, rgba(251, 191, 36, 0.08) 0%, transparent 60%);
+      }
+
+      .category-time .bg-effect-layer {
+        background:
+          repeating-conic-gradient(from 0deg at 20% 80%, transparent 0deg, rgba(251, 191, 36, 0.02) 5deg, transparent 10deg),
+          repeating-conic-gradient(from 45deg at 80% 20%, transparent 0deg, rgba(251, 191, 36, 0.02) 5deg, transparent 10deg);
+        animation: rotateGears 40s linear infinite;
+      }
+
+      @keyframes rotateGears {
+        to { transform: rotate(360deg); }
+      }
+
+      /* === RHYTHM: ピンク＋波打つグラデーション === */
+      .category-rhythm .category-bg {
+        background: radial-gradient(ellipse at 50% 100%, rgba(236, 72, 153, 0.08) 0%, transparent 60%);
+      }
+
+      .category-rhythm .bg-effect-layer {
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(236, 72, 153, 0.03) 25%,
+          rgba(168, 85, 247, 0.03) 50%,
+          rgba(236, 72, 153, 0.03) 75%,
+          transparent 100%
+        );
+        background-size: 200% 100%;
+        animation: waveFlow 4s ease-in-out infinite;
+      }
+
+      @keyframes waveFlow {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+
+      /* === FOCUS: ブルー＋集中線 === */
+      .category-focus .category-bg {
+        background: radial-gradient(ellipse at 50% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+      }
+
+      .category-focus .bg-effect-layer {
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 100px,
+          rgba(59, 130, 246, 0.02) 100px,
+          rgba(59, 130, 246, 0.02) 101px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px,
+          transparent 100px,
+          rgba(59, 130, 246, 0.02) 100px,
+          rgba(59, 130, 246, 0.02) 101px
+        );
+        animation: pulseLines 3s ease-in-out infinite;
+      }
+
+      @keyframes pulseLines {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+
+      /* === EXPLORATION: エメラルド＋星空 === */
+      .category-exploration .category-bg {
+        background: radial-gradient(ellipse at 30% 20%, rgba(16, 185, 129, 0.06) 0%, transparent 40%),
+                    radial-gradient(ellipse at 70% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 40%);
+      }
+
+      .category-exploration .floating-particles {
+        position: absolute;
+        inset: 0;
+      }
+
+      .category-exploration .floating-particles::before,
+      .category-exploration .floating-particles::after {
+        content: '✦';
+        position: absolute;
+        font-size: 0.8rem;
+        color: rgba(16, 185, 129, 0.4);
+        animation: twinkle 2s ease-in-out infinite;
+      }
+
+      .category-exploration .floating-particles::before {
+        top: 20%; left: 15%;
+        animation-delay: 0s;
+      }
+
+      .category-exploration .floating-particles::after {
+        top: 60%; right: 20%;
+        animation-delay: 1s;
+      }
+
+      @keyframes twinkle {
+        0%, 100% { opacity: 0.3; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.2); }
+      }
+
+      /* カテゴリヘッダー */
+      .category-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 10;
+        width: 100%;
+      }
+
+      .category-icon-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 0.75rem;
+      }
+
+      .category-icon {
+        font-size: 3rem;
+        display: block;
+      }
+
+      .slide.active .category-icon {
+        animation: iconBurst 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+      }
+
+      @keyframes iconBurst {
+        0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+        60% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+
+      .icon-glow {
+        position: absolute;
+        inset: -20px;
+        border-radius: 50%;
+        filter: blur(20px);
+        opacity: 0;
+      }
+
+      .slide.active .icon-glow {
+        animation: glowPulse 2s ease-in-out 0.5s infinite;
+      }
+
+      @keyframes glowPulse {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+      }
+
+      .category-time .icon-glow { background: rgba(251, 191, 36, 0.3); }
+      .category-rhythm .icon-glow { background: rgba(236, 72, 153, 0.3); }
+      .category-focus .icon-glow { background: rgba(59, 130, 246, 0.3); }
+      .category-exploration .icon-glow { background: rgba(16, 185, 129, 0.3); }
+
+      .category-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .slide.active .category-title {
+        animation: titleSlideUp 0.6s ease-out 0.3s both;
+      }
+
+      .category-time .category-title { color: #fbbf24; }
+      .category-rhythm .category-title { color: #ec4899; }
+      .category-focus .category-title { color: #3b82f6; }
+      .category-exploration .category-title { color: #10b981; }
+
+      @keyframes titleSlideUp {
+        from { transform: translateY(30px); opacity: 0; filter: blur(8px); }
+        to { transform: translateY(0); opacity: 1; filter: blur(0); }
+      }
+
+      .category-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0.5rem 0 0 0;
+      }
+
+      .slide.active .category-subtitle {
+        animation: fadeIn 0.5s ease-out 0.5s both;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      /* カテゴリスタイルグリッド */
+      .category-styles-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+      }
+
+      /* スタイルカード（カテゴリ用） */
+      .category-styles-grid .style-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+      }
+
+      .slide.active .category-styles-grid .style-card {
+        animation: cardFlipIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) calc(0.4s + var(--card-index) * 0.12s) both;
+      }
+
+      @keyframes cardFlipIn {
+        from {
+          opacity: 0;
+          transform: perspective(1000px) rotateY(-30deg) translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: perspective(1000px) rotateY(0) translateX(0);
+        }
+      }
+
+      .category-styles-grid .style-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .category-time .style-card:hover { box-shadow: 0 10px 30px rgba(251, 191, 36, 0.15); }
+      .category-rhythm .style-card:hover { box-shadow: 0 10px 30px rgba(236, 72, 153, 0.15); }
+      .category-focus .style-card:hover { box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15); }
+      .category-exploration .style-card:hover { box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15); }
+
+      .category-styles-grid .card-emoji {
+        font-size: 2.5rem;
+        flex-shrink: 0;
+      }
+
+      .slide.active .category-styles-grid .card-emoji {
+        animation: emojiPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) calc(0.6s + var(--card-index) * 0.12s) both;
+      }
+
+      @keyframes emojiPop {
+        from { transform: scale(0); }
+        to { transform: scale(1); }
+      }
+
+      .category-styles-grid .card-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .category-styles-grid .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        color: var(--text-primary);
+      }
+
+      .category-styles-grid .card-description {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin: 0 0 0.5rem 0;
+        line-height: 1.4;
+      }
+
+      .category-styles-grid .card-observation {
+        display: inline-block;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 100px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .category-time .card-observation { color: #fbbf24; }
+      .category-rhythm .card-observation { color: #ec4899; }
+      .category-focus .card-observation { color: #3b82f6; }
+      .category-exploration .card-observation { color: #10b981; }
+
+      /* 空状態 */
+      .category-empty {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+      }
+
+      .slide.active .category-empty {
+        animation: fadeIn 0.5s ease-out 0.5s both;
+      }
+
+      .category-empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+      }
+
+      /* ========================================
+       * 個別スタイルスライド - Achievement Unlock Style
+       * Dramatic reveal with bold geometric design
+       * ======================================== */
+      .individual-style-slide {
+        overflow: hidden;
+        background: #0a0a0f;
+      }
+
+      .individual-style-slide .slide-content {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 520px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 2rem;
+      }
+
+      /* === 背景レイヤー === */
+      .style-slide-bg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .mesh-gradient {
+        position: absolute;
+        inset: -50%;
+        background:
+          radial-gradient(ellipse 80% 50% at 20% 20%, rgba(120, 80, 220, 0.15) 0%, transparent 50%),
+          radial-gradient(ellipse 60% 80% at 80% 80%, rgba(60, 180, 220, 0.12) 0%, transparent 50%),
+          radial-gradient(ellipse 50% 50% at 50% 50%, rgba(220, 100, 180, 0.08) 0%, transparent 40%);
+        animation: meshFloat 12s ease-in-out infinite;
+      }
+
+      @keyframes meshFloat {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(2%, -2%) rotate(1deg); }
+        66% { transform: translate(-1%, 1%) rotate(-0.5deg); }
+      }
+
+      .noise-overlay {
+        position: absolute;
+        inset: 0;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      }
+
+      /* 幾何学図形 */
+      .geometric-shapes {
+        position: absolute;
+        inset: 0;
+      }
+
+      .geo-circle {
+        position: absolute;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .geo-1 {
+        width: 400px;
+        height: 400px;
+        top: -100px;
+        right: -100px;
+        animation: geoRotate 30s linear infinite;
+      }
+
+      .geo-2 {
+        width: 300px;
+        height: 300px;
+        bottom: -80px;
+        left: -80px;
+        animation: geoRotate 25s linear infinite reverse;
+      }
+
+      @keyframes geoRotate {
+        to { transform: rotate(360deg); }
+      }
+
+      .geo-line {
+        position: absolute;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      }
+
+      .geo-line-1 {
+        width: 200px;
+        top: 15%;
+        left: 5%;
+        transform: rotate(-15deg);
+      }
+
+      .geo-line-2 {
+        width: 150px;
+        bottom: 20%;
+        right: 8%;
+        transform: rotate(25deg);
+      }
+
+      .geo-line-3 {
+        width: 100px;
+        top: 60%;
+        left: 10%;
+        transform: rotate(-5deg);
+      }
+
+      /* スパークルバースト */
+      .sparkle-burst {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+      }
+
+      .sparkle-particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: #fff;
+        border-radius: 50%;
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(-80px);
+        box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.5);
+      }
+
+      .slide.active .sparkle-particle {
+        animation: sparkleBurst 1s ease-out var(--delay) both;
+      }
+
+      @keyframes sparkleBurst {
+        0% {
+          opacity: 0;
+          transform: rotate(var(--angle)) translateY(0);
+        }
+        30% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: rotate(var(--angle)) translateY(-120px);
+        }
+      }
+
+      /* === アクセントライン === */
+      .accent-line {
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--theme-color), transparent);
+        opacity: 0;
+      }
+
+      .slide.active .top-line {
+        animation: lineExpand 0.8s ease-out 0.1s both;
+      }
+
+      .slide.active .bottom-line {
+        animation: lineExpand 0.8s ease-out 1.2s both;
+      }
+
+      @keyframes lineExpand {
+        from { width: 0; opacity: 0; }
+        to { width: 60px; opacity: 1; }
+      }
+
+      /* === アイコンステージ === */
+      .style-icon-stage {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .icon-backdrop {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, rgba(120, 80, 220, 0.2) 0%, transparent 70%);
+        filter: blur(20px);
+        opacity: 0;
+      }
+
+      .slide.active .icon-backdrop {
+        animation: backdropPulse 2s ease-out 0.3s infinite;
+      }
+
+      @keyframes backdropPulse {
+        0%, 100% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(1.1); }
+      }
+
+      .icon-ring {
+        position: absolute;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .ring-outer {
+        inset: 0;
+        opacity: 0;
+      }
+
+      .ring-inner {
+        inset: 15px;
+        opacity: 0;
+      }
+
+      .slide.active .ring-outer {
+        animation: ringReveal 0.6s ease-out 0.2s both, ringPulse 3s ease-in-out 0.8s infinite;
+      }
+
+      .slide.active .ring-inner {
+        animation: ringReveal 0.6s ease-out 0.35s both;
+      }
+
+      @keyframes ringReveal {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      @keyframes ringPulse {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.05); opacity: 0.4; }
+      }
+
+      .individual-style-slide .style-emoji {
+        font-size: 4.5rem;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 0 20px rgba(120, 80, 220, 0.4));
+        opacity: 0;
+        transform: scale(0) rotate(-30deg);
+      }
+
+      .slide.active .individual-style-slide .style-emoji,
+      .individual-style-slide.active .style-emoji {
+        animation: emojiUnlock 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s both;
+      }
+
+      @keyframes emojiUnlock {
+        0% { opacity: 0; transform: scale(0) rotate(-30deg); }
+        60% { transform: scale(1.2) rotate(10deg); }
+        80% { transform: scale(0.95) rotate(-5deg); }
+        100% { opacity: 1; transform: scale(1) rotate(0); }
+      }
+
+      /* === タイトルエリア === */
+      .style-title-area {
+        text-align: center;
+        position: relative;
+      }
+
+      .individual-style-slide .style-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+        letter-spacing: -0.02em;
+        text-shadow: 0 0 40px rgba(120, 80, 220, 0.5);
+        opacity: 0;
+      }
+
+      .slide.active .individual-style-slide .style-title,
+      .individual-style-slide.active .style-title {
+        animation: titleReveal 0.7s ease-out 0.6s both;
+      }
+
+      @keyframes titleReveal {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+          filter: blur(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+          filter: blur(0);
+        }
+      }
+
+      .title-underline {
+        width: 0;
+        height: 2px;
+        margin: 0.75rem auto 0;
+        background: linear-gradient(90deg, transparent, var(--theme-color), transparent);
+      }
+
+      .slide.active .title-underline {
+        animation: underlineGrow 0.5s ease-out 0.9s both;
+      }
+
+      @keyframes underlineGrow {
+        from { width: 0; }
+        to { width: 80px; }
+      }
+
+      /* === スタイルカード === */
+      .style-card {
+        position: relative;
+        padding: 1.5rem 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        max-width: 400px;
+        opacity: 0;
+        overflow: hidden;
+      }
+
+      .slide.active .style-card {
+        animation: cardFloat 0.7s ease-out 1s both;
+      }
+
+      @keyframes cardFloat {
+        from {
+          opacity: 0;
+          transform: translateY(30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .card-glow {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(
+          from 0deg,
+          transparent,
+          rgba(120, 80, 220, 0.1),
+          transparent,
+          rgba(60, 180, 220, 0.1),
+          transparent
+        );
+        animation: cardGlowRotate 8s linear infinite;
+        opacity: 0;
+      }
+
+      .slide.active .card-glow {
+        animation: cardGlowRotate 8s linear 1.2s infinite;
+        opacity: 1;
+      }
+
+      @keyframes cardGlowRotate {
+        to { transform: rotate(360deg); }
+      }
+
+      .individual-style-slide .style-description {
+        position: relative;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.7;
+        margin: 0 0 1.25rem 0;
+        text-align: center;
+      }
+
+      .style-stat {
+        display: flex;
+        justify-content: center;
+      }
+
+      .stat-value {
+        display: inline-block;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--theme-color);
+        padding: 0.5rem 1.25rem;
+        background: rgba(120, 80, 220, 0.15);
+        border: 1px solid rgba(120, 80, 220, 0.25);
+        border-radius: 100px;
+        letter-spacing: 0.03em;
       }
 
       /* Heatmap */
@@ -4047,13 +5119,23 @@ export class WebviewProvider {
     // 期間タイプに応じたタイトル
     const periodType: import('../types').ReviewPeriodType = ('periodType' in summary && summary.periodType) ? summary.periodType : 'week';
     const isWeek = periodType === 'week';
+
+    // コーディングスタイルを取得（最大5つ）
+    const codingStyles = ('codingStyles' in summary && summary.codingStyles) ? summary.codingStyles : [];
+    const styleCount = Math.min(codingStyles.length, 5);
+
+    /*
+     * スライド番号オフセットの計算
+     * ※スライド追加時は getScripts() 内のコメント「スライド数の管理について」を参照
+     */
     // 週間のみ「When You Code」スライドがあるため、週間以外はスライド番号を-1する
     const slideOffset = isWeek ? 0 : -1;
-    // 月間・年間のみ「Coding Styles」スライドがあるため、その分を+1する
-    const styleSlideOffset = isWeek ? 0 : 1;
+    // 月間・年間のみ「Coding Styles」スライドがあるため、その分を追加
+    // スタイルがある場合: 導入1 + 個別スタイル数、ない場合: 0
+    const styleSlideOffset = isWeek ? 0 : (styleCount > 0 ? 1 + styleCount : 0);
     // 月間・年間のみ「Calendar Heatmap」スライドがあるため、その分を+1する
     const calendarSlideOffset = isWeek ? 0 : 1;
-    // 結果として、月間・年間は週間より1スライド多い（12スライド）
+    // 結果: 週間11、月間/年間はスタイル数により11〜17スライド
     const titleText = this.getPeriodTitle(periodType, summary);
     const hintText = this.getPeriodHint(periodType);
 
@@ -4284,23 +5366,122 @@ export class WebviewProvider {
             </p>
           </div>
         </div>
+        ` : ''}
 
-        <!-- Slide ${11 + slideOffset}: コーディングスタイル（月間・年間のみ） -->
-        <div class="slide" data-slide="${11 + slideOffset}">
-          <div class="slide-content">
-            <div class="slide-header">
-              <div class="slide-emoji animate-pop-in delay-1">✨</div>
-              <h2 class="slide-title animate-fade-in delay-2">あなたのコーディングスタイル</h2>
+        ${!isWeek && styleCount > 0 ? `
+        <!-- Slide ${11 + slideOffset}: コーディングスタイル導入（月間・年間のみ、スタイルがある場合） -->
+        <div class="slide coding-styles-intro-slide ${periodType === 'year' ? 'yearly' : 'monthly'}" data-slide="${11 + slideOffset}">
+          <!-- 背景エフェクト -->
+          <div class="intro-bg-effects">
+            ${periodType === 'year' ? `
+            <div class="golden-rays"></div>
+            <div class="sparkle-field">
+              ${Array.from({length: 30}, () => `
+                <div class="bg-sparkle" style="
+                  --x: ${Math.random() * 100}%;
+                  --y: ${Math.random() * 100}%;
+                  --size: ${2 + Math.random() * 4}px;
+                  --delay: ${Math.random() * 3}s;
+                "></div>
+              `).join('')}
             </div>
-            <div class="coding-styles-grid animate-fade-in delay-3">
-              ${this.renderCodingStyles(summary)}
+            ` : `
+            <div class="purple-aurora"></div>
+            <div class="floating-orbs">
+              ${Array.from({length: 5}, (_, i) => `
+                <div class="aurora-orb" style="
+                  --x: ${20 + i * 15}%;
+                  --delay: ${i * 0.5}s;
+                "></div>
+              `).join('')}
             </div>
-            <p class="slide-message coding-style-note animate-fade-in delay-5">
-              これらは「達成」ではなく、あなたらしいコーディングの形です。<br/>
-              どんなスタイルも、あなたの努力の証です。
-            </p>
+            `}
+          </div>
+
+          <!-- 絵文字オービット -->
+          <div class="floating-emojis-container">
+            ${['🐢', '🏃', '⚡', '🦉', '🐓', '💼', '🎮', '🎯', '🎪', '🗺️', '🌍', '🔬', '🔥'].map((emoji, i) => `
+              <div class="floating-emoji" style="
+                --index: ${i};
+                --total: 13;
+                --delay: ${(i * 0.08).toFixed(2)}s;
+                --pos-offset: ${(-6 + Math.random() * 12).toFixed(1)}%;
+                --radius-scale: ${(0.88 + Math.random() * 0.24).toFixed(2)};
+              ">${emoji}</div>
+            `).join('')}
+          </div>
+
+          <!-- メインコンテンツ -->
+          <div class="slide-content intro-centered">
+            <div class="intro-reveal-container">
+              ${periodType === 'year' ? `
+              <div class="year-crown">👑</div>
+              ` : ''}
+              <div class="intro-title-wrapper">
+                <span class="intro-line line-1">あなたの</span>
+                <span class="intro-line line-2">コーディングスタイルを</span>
+                <span class="intro-line line-3">見てみましょう</span>
+              </div>
+              <div class="intro-pulse-ring"></div>
+              <div class="intro-pulse-ring ring-2"></div>
+            </div>
           </div>
         </div>
+
+        <!-- 個別スタイルスライド（最大5枚） -->
+        ${codingStyles.slice(0, 5).map((style, index) => `
+        <div class="slide individual-style-slide" data-slide="${12 + slideOffset + index}" style="--slide-index: ${index}">
+          <!-- 背景レイヤー -->
+          <div class="style-slide-bg">
+            <div class="mesh-gradient"></div>
+            <div class="noise-overlay"></div>
+            <div class="geometric-shapes">
+              <div class="geo-circle geo-1"></div>
+              <div class="geo-circle geo-2"></div>
+              <div class="geo-line geo-line-1"></div>
+              <div class="geo-line geo-line-2"></div>
+              <div class="geo-line geo-line-3"></div>
+            </div>
+            <div class="sparkle-burst">
+              ${Array.from({length: 12}, (_, i) => `
+                <div class="sparkle-particle" style="--angle: ${i * 30}deg; --delay: ${i * 0.05}s"></div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- メインコンテンツ -->
+          <div class="slide-content">
+            <!-- 上部装飾ライン -->
+            <div class="accent-line top-line"></div>
+
+            <!-- アイコンエリア -->
+            <div class="style-icon-stage">
+              <div class="icon-backdrop"></div>
+              <div class="icon-ring ring-outer"></div>
+              <div class="icon-ring ring-inner"></div>
+              <span class="style-emoji">${style.emoji}</span>
+            </div>
+
+            <!-- タイトルエリア -->
+            <div class="style-title-area">
+              <h2 class="style-title">${style.title}</h2>
+              <div class="title-underline"></div>
+            </div>
+
+            <!-- 説明カード -->
+            <div class="style-card">
+              <div class="card-glow"></div>
+              <p class="style-description">${style.description}</p>
+              <div class="style-stat">
+                <span class="stat-value">${style.observation}</span>
+              </div>
+            </div>
+
+            <!-- 下部装飾 -->
+            <div class="accent-line bottom-line"></div>
+          </div>
+        </div>
+        `).join('')}
         ` : ''}
 
         <!-- Slide ${10 + slideOffset + styleSlideOffset + calendarSlideOffset}: 最終スライド -->
@@ -4437,9 +5618,10 @@ export class WebviewProvider {
       </div>
 
       <!-- Story-style Progress Bar -->
+      <!-- ※スライド追加時は getScripts() 内のコメント「スライド数の管理について」を参照 -->
       <div class="story-progress-wrapper">
-        <div class="story-progress" id="storyProgress">
-          ${Array.from({length: isWeek ? 11 : 12}, (_, i) => i + 1).map(i => `
+        <div class="story-progress" id="storyProgress" data-total-slides="${isWeek ? 11 : (styleCount > 0 ? 12 + styleCount : 11)}" data-style-count="${styleCount}">
+          ${Array.from({length: isWeek ? 11 : (styleCount > 0 ? 12 + styleCount : 11)}, (_, i) => i + 1).map(i => `
             <div class="story-bar" data-slide="${i}">
               <div class="story-bar-fill ${i === 1 ? 'active' : ''}"></div>
             </div>
@@ -5190,36 +6372,6 @@ export class WebviewProvider {
   }
 
   /**
-   * コーディングスタイルをレンダリング
-   * ※これらは「達成」ではなく「観察されたパターン」として表現
-   */
-  private renderCodingStyles(summary: WeeklySummary | MonthlySummary | YearlySummary): string {
-    // 月間・年間サマリーからコーディングスタイルを取得
-    const codingStyles = ('codingStyles' in summary && summary.codingStyles)
-      ? summary.codingStyles
-      : [];
-
-    if (codingStyles.length === 0) {
-      return `
-        <div class="coding-style-empty">
-          <p>この期間のデータを分析中...</p>
-        </div>
-      `;
-    }
-
-    return codingStyles.map((style, index) => `
-      <div class="coding-style-card animate-fade-in" style="animation-delay: ${0.1 * (index + 1)}s">
-        <div class="style-emoji">${style.emoji}</div>
-        <div class="style-content">
-          <h3 class="style-title">${style.title}</h3>
-          <p class="style-description">${style.description}</p>
-          <span class="style-observation">${style.observation}</span>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  /**
    * 記録メッセージを取得（期間別）
    */
   private getRecordsMessage(streakDays: number, longestSessionMs: number, periodType: import('../types').ReviewPeriodType = 'week', summary?: WeeklySummary | MonthlySummary | YearlySummary): string {
@@ -5625,41 +6777,105 @@ export class WebviewProvider {
         });
       }
 
+      // 画面幅に応じてコンテンツをスケーリング
+      function adjustScale() {
+        const baseWidth = 944;
+        const container = document.querySelector('.slides-container');
+        const viewportWidth = window.innerWidth;
+
+        if (viewportWidth < baseWidth) {
+          const scale = viewportWidth / baseWidth;
+          container.style.zoom = scale;
+        } else {
+          container.style.zoom = 1;
+        }
+      }
+
+      window.addEventListener('resize', adjustScale);
+      adjustScale();
+
       let currentSlide = 1;
       const currentPeriodType = '${this.currentPeriodType}';
-      // 週間: 11スライド（When You Codeあり、Coding Stylesなし、Calendarなし）
-      // 月間/年間: 12スライド（When You Codeなし、Coding Stylesあり、Calendarあり）
-      const totalSlides = currentPeriodType === 'week' ? 11 : 12;
 
-      // スライドごとの表示時間（ミリ秒）- 基本7500ms（元の5000の1.5倍）
-      // 週間: 1-11スライド（7番目が「When You Code」パターン）
-      // 月間/年間: 1-12スライド（9番目が「Coding Styles」、10番目が「Calendar Heatmap」）
-      const slideDurations = currentPeriodType === 'week' ? {
-        1: 3000,    // タイトル - 短め（元の半分）
-        2: 8000,    // 総時間 - 数字に注目
-        3: 9000,    // 日別グラフ - グラフ確認のため長め
-        4: 9000,    // プロジェクトTOP5 - リスト確認
-        5: 9000,    // ファイルTOP5 - リスト確認
-        6: 9000,    // 言語 - リスト確認
-        7: 8500,    // パターン - ヒートマップ確認
-        8: 7500,    // 夜ふかし - 標準
-        9: 8000,    // 記録 - 複数項目
-        10: 6000,   // 最終スライド - 短め
-        11: 0       // サマリー - 自動スクロールなし
-      } : {
-        1: 3000,    // タイトル - 短め（元の半分）
-        2: 8000,    // 総時間 - 数字に注目
-        3: 9000,    // 日別グラフ - グラフ確認のため長め
-        4: 9000,    // プロジェクトTOP5 - リスト確認
-        5: 9000,    // ファイルTOP5 - リスト確認
-        6: 9000,    // 言語 - リスト確認
-        7: 7500,    // 夜ふかし - 標準（月間/年間では7番目）
-        8: 8000,    // 記録 - 複数項目
-        9: 18000,   // Coding Styles - スタイルカード確認（2倍）
-        10: 12000,  // Calendar Heatmap - カレンダー確認（長め）
-        11: 6000,   // 最終スライド - 短め
-        12: 0       // サマリー - 自動スクロールなし
-      };
+      /*
+       * ========================================
+       * スライド数の管理について（重要）
+       * ========================================
+       * スライドを追加・削除する場合、以下の箇所を必ず更新すること:
+       *
+       * 1. totalSlides (この下 - HTMLから動的に取得)
+       * 2. slideDurations (buildSlideDurations()で動的生成)
+       * 3. story-bar の生成数 (getFooter() 内の Array.from({length: ...}))
+       * 4. スライド番号のオフセット計算 (slideOffset, styleSlideOffset, calendarSlideOffset)
+       *
+       * 現在のスライド構成:
+       * [週間: 11スライド]
+       *   1: タイトル, 2: 総時間, 3: 日別グラフ, 4: プロジェクト, 5: ファイル,
+       *   6: 言語, 7: パターン(When You Code), 8: 夜ふかし, 9: 記録,
+       *   10: 最終, 11: サマリー
+       *
+       * [月間/年間: 動的スライド数（スタイル数N=0〜5により11〜17スライド）]
+       *   1: タイトル, 2: 総時間, 3: 日別グラフ, 4: プロジェクト, 5: ファイル,
+       *   6: 言語, 7: 夜ふかし, 8: 記録, 9: カレンダー,
+       *   (N>0の場合) 10: スタイル導入,
+       *   (N>0の場合) 11〜(10+N): 個別スタイルスライド,
+       *   (10+N または 10): 最終, (11+N または 11): サマリー
+       * ========================================
+       */
+      // スライド総数とスタイル数をHTMLから取得
+      const storyProgressEl = document.getElementById('storyProgress');
+      const totalSlides = storyProgressEl ? parseInt(storyProgressEl.dataset.totalSlides || '11') : 11;
+      const styleCount = storyProgressEl ? parseInt(storyProgressEl.dataset.styleCount || '0') : 0;
+
+      // スライドごとの表示時間（ミリ秒）を動的に生成
+      function buildSlideDurations() {
+        if (currentPeriodType === 'week') {
+          return {
+            1: 3000,    // タイトル - 短め
+            2: 8000,    // 総時間 - 数字に注目
+            3: 9000,    // 日別グラフ - グラフ確認のため長め
+            4: 9000,    // プロジェクトTOP5 - リスト確認
+            5: 9000,    // ファイルTOP5 - リスト確認
+            6: 9000,    // 言語 - リスト確認
+            7: 8500,    // パターン(When You Code) - ヒートマップ確認
+            8: 7500,    // 夜ふかし - 標準
+            9: 8000,    // 記録 - 複数項目
+            10: 6000,   // 最終スライド - 短め
+            11: 0       // サマリー - 自動スクロールなし
+          };
+        }
+
+        // 月間・年間: 動的スライド数
+        const durations = {
+          1: 3000,    // タイトル - 短め
+          2: 8000,    // 総時間 - 数字に注目
+          3: 9000,    // 日別グラフ - グラフ確認のため長め
+          4: 9000,    // プロジェクトTOP5 - リスト確認
+          5: 9000,    // ファイルTOP5 - リスト確認
+          6: 9000,    // 言語 - リスト確認
+          7: 7500,    // 夜ふかし - 標準
+          8: 8000,    // 記録 - 複数項目
+          9: 12000,   // カレンダーヒートマップ - 確認長め
+        };
+
+        if (styleCount > 0) {
+          // スタイルがある場合
+          durations[10] = 3000;  // スタイル導入 - 短め
+          for (let i = 0; i < styleCount; i++) {
+            durations[11 + i] = 5000;  // 各スタイルスライド
+          }
+          durations[11 + styleCount] = 6000;  // 最終スライド
+          durations[12 + styleCount] = 0;     // サマリー - 自動スクロールなし
+        } else {
+          // スタイルがない場合
+          durations[10] = 6000;  // 最終スライド
+          durations[11] = 0;     // サマリー - 自動スクロールなし
+        }
+
+        return durations;
+      }
+
+      const slideDurations = buildSlideDurations();
 
       let autoScrollTimer = null;
       let isPaused = false;
@@ -5824,6 +7040,57 @@ export class WebviewProvider {
         });
       }
 
+      // Animate coding styles slide with sequential category reveals
+      function animateCodingStylesSlide(slideElement) {
+        if (!slideElement.classList.contains('coding-styles-slide')) return;
+
+        // Reset all visible classes
+        const header = slideElement.querySelector('.slide-header');
+        const container = slideElement.querySelector('.coding-styles-container');
+        const groups = slideElement.querySelectorAll('.style-category-group');
+        const cards = slideElement.querySelectorAll('.coding-style-card');
+        const message = slideElement.querySelector('.slide-message');
+
+        [header, container, message].forEach(el => el?.classList.remove('visible'));
+        groups.forEach(g => g.classList.remove('visible'));
+        cards.forEach(c => c.classList.remove('visible'));
+
+        let delay = 0;
+
+        // 1. Header appears first (centered)
+        setTimeout(() => {
+          header?.classList.add('visible');
+        }, delay);
+        delay += 600;
+
+        // 2. Container becomes visible
+        setTimeout(() => {
+          container?.classList.add('visible');
+        }, delay);
+        delay += 200;
+
+        // 3. Each category group appears sequentially
+        groups.forEach((group, groupIndex) => {
+          setTimeout(() => {
+            group.classList.add('visible');
+
+            // 4. Cards within each group appear with slight stagger
+            const groupCards = group.querySelectorAll('.coding-style-card');
+            groupCards.forEach((card, cardIndex) => {
+              setTimeout(() => {
+                card.classList.add('visible');
+              }, cardIndex * 100);
+            });
+          }, delay + groupIndex * 400);
+        });
+
+        // 5. Final message appears after all groups
+        const totalGroupDelay = delay + groups.length * 400 + 300;
+        setTimeout(() => {
+          message?.classList.add('visible');
+        }, totalGroupDelay);
+      }
+
       function goToSlide(n, animate = true) {
         if (autoScrollTimer) {
           clearTimeout(autoScrollTimer);
@@ -5853,6 +7120,7 @@ export class WebviewProvider {
           resetAnimations(activeSlide);
           animateProgressBars(activeSlide);
           animateScrambleNumbers(activeSlide);
+          animateCodingStylesSlide(activeSlide);
         }
 
         // Start auto-scroll timer with slide-specific duration

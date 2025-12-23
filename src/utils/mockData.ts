@@ -486,7 +486,7 @@ function generateMockCodingStyles(period: 'month' | 'year'): CodingStyle[] {
         id: 'seasonal_master',
         category: 'rhythm',
         emoji: '🌸',
-        title: '四季の達人',
+        title: '四季の覇者',
         description: '1年を通じてコンスタントに活動しました',
         observation: '春夏秋冬すべてで活動',
         isYearlyExclusive: true
@@ -494,9 +494,9 @@ function generateMockCodingStyles(period: 'month' | 'year'): CodingStyle[] {
       {
         id: 'code_explorer',
         category: 'focus',
-        emoji: '🧭',
-        title: 'コード探検家',
-        description: '膨大なコードベースを探索しました',
+        emoji: '🦈',
+        title: 'コードの海の主',
+        description: '広大なコードの海を泳ぎ尽くしました',
         observation: '1,247ファイル編集',
         isYearlyExclusive: true
       },

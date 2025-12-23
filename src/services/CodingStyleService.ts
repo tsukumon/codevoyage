@@ -325,22 +325,22 @@ export class CodingStyleService {
       styles.push({
         id: 'growth_star',
         category: 'exploration',
-        emoji: '📈',
-        title: '成長の星',
-        description: '今年新しい言語に挑戦しました',
+        emoji: '💫',
+        title: '超新星',
+        description: '新しい言語の世界へ飛び込みました',
         observation: `${newLanguages.length}言語を新たに習得`,
         isYearlyExclusive: true
       });
     }
 
-    // 四季の達人: 全四半期で活動
+    // 四季の覇者: 全四半期で活動
     const quarterlyActivity = this.checkQuarterlyActivity(summary.monthlyBreakdown);
     if (quarterlyActivity.allActive) {
       styles.push({
         id: 'seasonal_master',
         category: 'rhythm',
         emoji: '🌸',
-        title: '四季の達人',
+        title: '四季の覇者',
         description: '1年を通じてコンスタントに活動しました',
         observation: '春夏秋冬すべてで活動',
         isYearlyExclusive: true
@@ -360,14 +360,14 @@ export class CodingStyleService {
       });
     }
 
-    // コード探検家: 1000ファイル以上
+    // コードの海の主: 1000ファイル以上
     if (summary.totalFilesEdited >= 1000) {
       styles.push({
         id: 'code_explorer',
         category: 'focus',
-        emoji: '🧭',
-        title: 'コード探検家',
-        description: '膨大なコードベースを探索しました',
+        emoji: '🦈',
+        title: 'コードの海の主',
+        description: '広大なコードの海を泳ぎ尽くしました',
         observation: `${summary.totalFilesEdited}ファイル編集`,
         isYearlyExclusive: true
       });
@@ -488,15 +488,15 @@ export class CodingStyleService {
       });
     }
 
-    // マスター版: 八面六臂の極意（5プロジェクト以上で各15%以上）🎪→🎭
+    // マスター版: 阿修羅（5プロジェクト以上で各15%以上）🎪→🔱
     const activeProjects = summary.topProjects.filter(p => p.percentage >= 15);
     if (activeProjects.length >= 5) {
       styles.push({
         id: 'multi_tasker',
         category: 'focus',
-        emoji: '🎭',
-        title: '八面六臂の極意',
-        description: '多くのプロジェクトを同時に操る達人です',
+        emoji: '🔱',
+        title: '阿修羅',
+        description: '無数の腕で多くのプロジェクトを同時に操ります',
         observation: `${activeProjects.length}つのプロジェクトを並行`,
         isMaster: true
       });

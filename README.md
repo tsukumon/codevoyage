@@ -2,6 +2,8 @@
 
 あなたのコーディング時間やコーディングスタイルの傾向を、Spotify WrappedやYoutube Recap風に振り返りできます。
 
+X(旧Twitter)にハッシュタグ#CodeVoyageで投稿しよう。
+
 ![CodeVoyage Demo](https://raw.githubusercontent.com/tsukumon/codevoyage/refs/heads/main/images/demo.gif)
 
 ---
@@ -51,6 +53,12 @@ CodeVoyage: Open Dashboard
 | `codevoyage.showStatusBar` | `true` | ステータスバー表示 |
 
 ---
+
+## バグ報告
+バグ報告はこちらにお願いします。
+
+https://github.com/tsukumon/codevoyage/issues
+
 
 ## ライセンス
 

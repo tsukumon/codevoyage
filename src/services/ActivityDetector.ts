@@ -18,8 +18,12 @@ export class ActivityDetector {
 
   /**
    * アイドル状態かどうかを判定
+   * idleTimeoutMsが0の場合はアイドル判定を無効化（常にfalse）
    */
   public isIdle(): boolean {
+    if (this.idleTimeoutMs === 0) {
+      return false;
+    }
     const idleDuration = Date.now() - this.lastActivityTime;
     return idleDuration > this.idleTimeoutMs;
   }

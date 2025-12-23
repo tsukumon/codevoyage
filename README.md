@@ -24,11 +24,7 @@ X(旧Twitter)にハッシュタグ#CodeVoyageで投稿しよう。
 
 ### 2. 振り返りを見る
 
-コマンドパレット（`Ctrl+Shift+P` / `Cmd+Shift+P`）から：
-
-```
-CodeVoyage: Open Dashboard
-```
+コマンドパレット（`Ctrl+Shift+P` / `Cmd+Shift+P`）から``CodeVoyage: Open Dashboard``
 
 またはステータスバーの時計アイコンをクリック。
 
@@ -49,7 +45,7 @@ CodeVoyage: Open Dashboard
 
 | 設定 | デフォルト | 説明 |
 |------|-----------|------|
-| `codevoyage.idleTimeout` | `300` | アイドル判定までの秒数 |
+| `codevoyage.idleTimeout` | `300` | アイドル判定までの秒数（0で無効化） |
 | `codevoyage.showStatusBar` | `true` | ステータスバー表示 |
 
 ---

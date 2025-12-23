@@ -155,6 +155,17 @@ export class WebviewProvider {
           this.updateContent();
         }
         break;
+      case 'goToCurrentPeriod':
+        // 現在の期間（今週/今月/今年）に戻る
+        if (this.currentPeriodType === 'week') {
+          this.currentWeekOffset = 0;
+        } else if (this.currentPeriodType === 'month') {
+          this.currentMonthOffset = 0;
+        } else if (this.currentPeriodType === 'year') {
+          this.currentYearOffset = 0;
+        }
+        this.updateContent();
+        break;
       case 'close':
         if (WebviewProvider.currentPanel) {
           WebviewProvider.currentPanel.dispose();
@@ -372,6 +383,12 @@ export class WebviewProvider {
     const nonce = this.getNonce();
     const periodLabel = this.currentPeriodType === 'week' ? '週間' :
                         this.currentPeriodType === 'month' ? '月間' : '年間';
+    const currentOffset = this.getCurrentOffset(this.currentPeriodType);
+    const isNextDisabled = currentOffset >= 0;
+    const prevCommand = this.currentPeriodType === 'month' ? 'previousMonth' :
+                        this.currentPeriodType === 'year' ? 'previousYear' : 'previousWeek';
+    const nextCommand = this.currentPeriodType === 'month' ? 'nextMonth' :
+                        this.currentPeriodType === 'year' ? 'nextYear' : 'nextWeek';
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -385,83 +402,374 @@ export class WebviewProvider {
         img-src ${webview.cspSource} data:;
         font-src ${webview.cspSource};
     ">
-    <title>データがありません</title>
+    <title>航海の始まり</title>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
+
       body {
-        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+        background: #050510;
         min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* ナビゲーションバー - スライドと同じスタイル */
+      .week-nav {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 100;
+      }
+
+      .week-nav-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 100px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(10, 10, 15, 0.6);
+        backdrop-filter: blur(10px);
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .week-nav-btn:hover:not(:disabled) {
+        border-color: #1db954;
+        color: #1db954;
+        background: rgba(29, 185, 84, 0.1);
+      }
+
+      .week-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .week-nav-btn.current-btn {
+        border-color: rgba(29, 185, 84, 0.5);
+        color: #1db954;
+      }
+
+      .week-nav-btn.current-btn:hover {
+        background: rgba(29, 185, 84, 0.2);
+      }
+
+      /* 期間選択に戻るボタン - 左上 */
+      .back-nav {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 100;
+      }
+
+      .back-nav-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 100px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(10, 10, 15, 0.6);
+        backdrop-filter: blur(10px);
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .back-nav-btn:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      /* メインコンテナ */
+      .main-content {
+        flex: 1;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        color: #e2e8f0;
       }
+
+      /* 星空背景 */
+      .starfield {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle var(--duration) ease-in-out infinite;
+        animation-delay: var(--delay);
+      }
+
+      @keyframes twinkle {
+        0%, 100% { opacity: var(--base-opacity); transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.2); }
+      }
+
+      /* 流れ星 */
+      .shooting-star {
+        position: absolute;
+        width: 100px;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+        animation: shoot 3s linear infinite;
+        opacity: 0;
+      }
+
+      .shooting-star:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+      .shooting-star:nth-child(2) { top: 40%; left: 60%; animation-delay: 2s; }
+      .shooting-star:nth-child(3) { top: 70%; left: 30%; animation-delay: 4s; }
+
+      @keyframes shoot {
+        0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 0; }
+        10% { opacity: 1; }
+        30% { opacity: 0; }
+        100% { transform: translateX(300px) translateY(300px) rotate(-45deg); opacity: 0; }
+      }
+
+      /* ネビュラ効果 */
+      .nebula {
+        position: fixed;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        filter: blur(100px);
+        opacity: 0.15;
+        pointer-events: none;
+      }
+
+      .nebula-1 {
+        top: -200px;
+        right: -200px;
+        background: radial-gradient(circle, #4f46e5 0%, transparent 70%);
+        animation: nebulaPulse 8s ease-in-out infinite;
+      }
+
+      .nebula-2 {
+        bottom: -200px;
+        left: -200px;
+        background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+        animation: nebulaPulse 10s ease-in-out infinite reverse;
+      }
+
+      @keyframes nebulaPulse {
+        0%, 100% { transform: scale(1); opacity: 0.15; }
+        50% { transform: scale(1.1); opacity: 0.2; }
+      }
+
+      /* コンテンツ */
       .container {
         text-align: center;
-        padding: 2rem;
-        max-width: 500px;
+        padding: 3rem;
+        max-width: 600px;
+        position: relative;
+        z-index: 10;
       }
-      .icon {
-        font-size: 4rem;
-        margin-bottom: 1.5rem;
-        animation: float 3s ease-in-out infinite;
+
+      /* 宇宙船アイコン */
+      .spacecraft {
+        font-size: 5rem;
+        margin-bottom: 2rem;
+        display: inline-block;
+        animation: float 4s ease-in-out infinite, glow 2s ease-in-out infinite alternate;
+        filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.5));
       }
+
       @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
+        0%, 100% { transform: translateY(0) rotate(-5deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
       }
-      .title {
-        font-size: 1.5rem;
-        font-weight: bold;
+
+      @keyframes glow {
+        0% { filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4)); }
+        100% { filter: drop-shadow(0 0 40px rgba(99, 102, 241, 0.8)); }
+      }
+
+      /* タイトル */
+      .eyebrow {
+        font-family: 'Orbitron', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
+        color: #06b6d4;
         margin-bottom: 1rem;
-        background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards;
+        animation-delay: 0.2s;
+      }
+
+      .title {
+        font-family: 'Orbitron', monospace;
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1.3;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%);
+        background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        animation: fadeSlideUp 0.8s ease forwards, shimmer 3s linear infinite;
+        animation-delay: 0.4s, 0s;
+        opacity: 0;
       }
+
+      @keyframes shimmer {
+        0% { background-position: 200% center; }
+        100% { background-position: -200% center; }
+      }
+
+      @keyframes fadeSlideUp {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+
+      /* メッセージ */
       .message {
-        color: #94a3b8;
-        line-height: 1.8;
-        margin-bottom: 2rem;
-      }
-      .back-btn {
-        display: inline-block;
-        padding: 0.75rem 2rem;
-        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-        color: white;
-        border: none;
-        border-radius: 100px;
+        color: #64748b;
         font-size: 1rem;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        line-height: 2;
+        margin-bottom: 2.5rem;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards;
+        animation-delay: 0.6s;
       }
-      .back-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+
+      .message strong {
+        color: #94a3b8;
+      }
+
+      /* ヒント */
+      .hint {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(100, 116, 139, 0.2);
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards;
+        animation-delay: 0.8s;
+      }
+
+      .hint-label {
+        font-family: 'Orbitron', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: #475569;
+        margin-bottom: 0.75rem;
+      }
+
+      .hint-text {
+        color: #64748b;
+        font-size: 0.875rem;
+      }
+
+      .hint-text code {
+        background: rgba(99, 102, 241, 0.1);
+        padding: 0.2em 0.5em;
+        border-radius: 4px;
+        font-family: 'Orbitron', monospace;
+        font-size: 0.8em;
+        color: #818cf8;
       }
     </style>
 </head>
 <body>
-    <div class="container">
-      <div class="icon">📊</div>
-      <h1 class="title">${periodLabel}のデータがまだ少ないようです</h1>
-      <p class="message">
-        コーディングを続けると、ここに統計が表示されます。<br>
-        VS Codeでコードを書くだけで自動的に記録されます。
-      </p>
-      <button class="back-btn" id="backBtn">戻る</button>
+    <!-- 期間選択に戻るボタン -->
+    <div class="back-nav">
+      <button class="back-nav-btn" id="backBtn">← 期間選択に戻る</button>
     </div>
+
+    <!-- 期間ナビゲーション -->
+    <div class="week-nav">
+      <button class="week-nav-btn" id="prevPeriod">← ${this.getPrevPeriodLabel(this.currentPeriodType)}</button>
+      <button class="week-nav-btn current-btn" id="currentPeriod">${this.currentPeriodType === 'week' ? '今週' : this.currentPeriodType === 'month' ? '今月' : '今年'}</button>
+      <button class="week-nav-btn" id="nextPeriod" ${isNextDisabled ? 'disabled' : ''}>${this.getNextPeriodLabel(this.currentPeriodType)} →</button>
+    </div>
+
+    <!-- 星空 -->
+    <div class="starfield">
+      ${Array.from({length: 80}, () => {
+        const size = Math.random() * 2 + 1;
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const duration = Math.random() * 3 + 2;
+        const delay = Math.random() * 3;
+        const opacity = Math.random() * 0.5 + 0.3;
+        return `<div class="star" style="width:${size}px;height:${size}px;left:${x}%;top:${y}%;--duration:${duration}s;--delay:${delay}s;--base-opacity:${opacity}"></div>`;
+      }).join('')}
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+    </div>
+
+    <!-- ネビュラ -->
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+
+    <!-- メインコンテンツ -->
+    <div class="main-content">
+      <div class="container">
+        <div class="spacecraft">🚀</div>
+        <p class="eyebrow">Voyage Awaits</p>
+        <h1 class="title">航海記録は<br>まだ始まったばかり</h1>
+        <p class="message">
+          コードを書くたびに、あなたの航海記録が刻まれます。<br>
+          <strong>VS Code</strong>で開発を続けて、データを蓄積しましょう。
+        </p>
+
+        <div class="hint">
+          <p class="hint-label">Demo Mode</p>
+          <p class="hint-text">コマンドパレットから <code>Show Demo Review</code> でサンプルを確認できます</p>
+        </div>
+      </div>
+    </div>
+
     <script nonce="${nonce}">
       const vscode = acquireVsCodeApi();
+
+      // 期間選択に戻る
       const backBtn = document.getElementById('backBtn');
       if (backBtn) {
         backBtn.addEventListener('click', () => {
           vscode.postMessage({ command: 'backToPeriodSelection' });
+        });
+      }
+
+      // Previous期間
+      const prevBtn = document.getElementById('prevPeriod');
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          vscode.postMessage({ command: '${prevCommand}' });
+        });
+      }
+
+      // Next期間
+      const nextBtn = document.getElementById('nextPeriod');
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          vscode.postMessage({ command: '${nextCommand}' });
+        });
+      }
+
+      // 今週/今月/今年に飛ぶ
+      const currentBtn = document.getElementById('currentPeriod');
+      if (currentBtn) {
+        currentBtn.addEventListener('click', () => {
+          vscode.postMessage({ command: 'goToCurrentPeriod' });
         });
       }
     </script>
@@ -3008,6 +3316,15 @@ export class WebviewProvider {
       .week-nav-btn:disabled {
         opacity: 0.3;
         cursor: not-allowed;
+      }
+
+      .week-nav-btn.current-btn {
+        border-color: rgba(29, 185, 84, 0.5);
+        color: var(--accent-green);
+      }
+
+      .week-nav-btn.current-btn:hover {
+        background: rgba(29, 185, 84, 0.2);
       }
 
       /* Animations */
@@ -6037,8 +6354,9 @@ export class WebviewProvider {
 
       <!-- Period navigation -->
       <div class="week-nav">
-        <button class="week-nav-btn" id="prevPeriod">← Previous ${this.getPeriodNavLabel(periodType)}</button>
-        <button class="week-nav-btn" id="nextPeriod" ${this.getCurrentOffset(periodType) >= 0 ? 'disabled' : ''}>Next ${this.getPeriodNavLabel(periodType)} →</button>
+        <button class="week-nav-btn" id="prevPeriod">← ${this.getPrevPeriodLabel(periodType)}</button>
+        <button class="week-nav-btn current-btn" id="currentPeriod">${periodType === 'week' ? '今週' : periodType === 'month' ? '今月' : '今年'}</button>
+        <button class="week-nav-btn" id="nextPeriod" ${this.getCurrentOffset(periodType) >= 0 ? 'disabled' : ''}>${this.getNextPeriodLabel(periodType)} →</button>
       </div>
     `;
   }
@@ -7317,6 +7635,7 @@ export class WebviewProvider {
       const storyBars = document.querySelectorAll('.story-bar');
       const prevPeriodBtn = document.getElementById('prevPeriod');
       const nextPeriodBtn = document.getElementById('nextPeriod');
+      const currentPeriodBtn = document.getElementById('currentPeriod');
       const pauseIndicator = document.getElementById('pauseIndicator');
       const storyProgress = document.getElementById('storyProgress');
 
@@ -7615,6 +7934,13 @@ export class WebviewProvider {
                         currentPeriodType === 'year' ? 'nextYear' : 'nextWeek';
         vscode.postMessage({ command: command });
       });
+
+      // 今週/今月/今年に飛ぶ
+      if (currentPeriodBtn) {
+        currentPeriodBtn.addEventListener('click', () => {
+          vscode.postMessage({ command: 'goToCurrentPeriod' });
+        });
+      }
 
       // Image export functionality
       const downloadBtn = document.getElementById('downloadImage');
@@ -8131,17 +8457,54 @@ export class WebviewProvider {
   }
 
   /**
-   * 期間ナビゲーションのラベルを取得
+   * 前の期間のラベルを取得（具体的な日付表示）
    */
-  private getPeriodNavLabel(periodType: ReviewPeriodType): string {
+  private getPrevPeriodLabel(periodType: ReviewPeriodType): string {
+    const now = new Date();
     switch (periodType) {
-      case 'month':
-        return 'Month';
-      case 'year':
-        return 'Year';
+      case 'month': {
+        const targetDate = new Date(now.getFullYear(), now.getMonth() + this.currentMonthOffset - 1, 1);
+        return `${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月`;
+      }
+      case 'year': {
+        const targetYear = now.getFullYear() + this.currentYearOffset - 1;
+        return `${targetYear}年`;
+      }
       case 'week':
-      default:
-        return 'Week';
+      default: {
+        // 週の開始日を計算（月曜始まり）
+        const targetDate = new Date(now);
+        const dayOfWeek = targetDate.getDay();
+        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 月曜日を基準に
+        targetDate.setDate(targetDate.getDate() - diff + (this.currentWeekOffset - 1) * 7);
+        return `${targetDate.getMonth() + 1}/${targetDate.getDate()}週`;
+      }
+    }
+  }
+
+  /**
+   * 次の期間のラベルを取得（具体的な日付表示）
+   */
+  private getNextPeriodLabel(periodType: ReviewPeriodType): string {
+    const now = new Date();
+    switch (periodType) {
+      case 'month': {
+        const targetDate = new Date(now.getFullYear(), now.getMonth() + this.currentMonthOffset + 1, 1);
+        return `${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月`;
+      }
+      case 'year': {
+        const targetYear = now.getFullYear() + this.currentYearOffset + 1;
+        return `${targetYear}年`;
+      }
+      case 'week':
+      default: {
+        // 週の開始日を計算（月曜始まり）
+        const targetDate = new Date(now);
+        const dayOfWeek = targetDate.getDay();
+        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 月曜日を基準に
+        targetDate.setDate(targetDate.getDate() - diff + (this.currentWeekOffset + 1) * 7);
+        return `${targetDate.getMonth() + 1}/${targetDate.getDate()}週`;
+      }
     }
   }
 

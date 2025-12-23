@@ -4169,6 +4169,21 @@ export class WebviewProvider {
         border-color: rgba(29, 185, 84, 0.5);
       }
 
+      .summary-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
+      }
+
+      .summary-btn .btn-icon.spinning {
+        display: inline-block;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
       /* Back to selection button */
       .back-to-selection-wrapper {
         margin-top: 1.5rem;
@@ -8079,7 +8094,7 @@ export class WebviewProvider {
         ctx.stroke();
 
         // Add noise texture overlay for grainy effect (matching CSS noise)
-        // Apply noise directly to card area pixels
+        // Use sparse noise for performance (every 2nd pixel)
         const cardPixelX = Math.floor(cardX * scale);
         const cardPixelY = Math.floor(cardY * scale);
         const cardPixelW = Math.floor(cardW * scale);
@@ -8089,14 +8104,16 @@ export class WebviewProvider {
         const cardImageData = ctx.getImageData(cardPixelX, cardPixelY, cardPixelW, cardPixelH);
         const pixels = cardImageData.data;
 
-        // Apply noise to each pixel
-        for (let i = 0; i < pixels.length; i += 4) {
-          // Random noise value (-15 to +15)
-          const noise = (Math.random() - 0.5) * 30;
-          pixels[i] = Math.max(0, Math.min(255, pixels[i] + noise));     // R
-          pixels[i + 1] = Math.max(0, Math.min(255, pixels[i + 1] + noise)); // G
-          pixels[i + 2] = Math.max(0, Math.min(255, pixels[i + 2] + noise)); // B
-          // Alpha unchanged
+        // Apply noise to every 2nd pixel for performance (visually similar result)
+        const step = 2;
+        for (let y = 0; y < cardPixelH; y += step) {
+          for (let x = 0; x < cardPixelW; x += step) {
+            const i = (y * cardPixelW + x) * 4;
+            const noise = (Math.random() - 0.5) * 30;
+            pixels[i] = Math.max(0, Math.min(255, pixels[i] + noise));     // R
+            pixels[i + 1] = Math.max(0, Math.min(255, pixels[i + 1] + noise)); // G
+            pixels[i + 2] = Math.max(0, Math.min(255, pixels[i + 2] + noise)); // B
+          }
         }
 
         // Put modified pixels back
@@ -8262,20 +8279,33 @@ export class WebviewProvider {
 
       if (copyBtn) {
         copyBtn.addEventListener('click', async () => {
+          // Show loading state immediately
+          const originalText = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<span class="btn-icon spinning">⏳</span> コピー中...';
+          copyBtn.disabled = true;
+
           const canvas = await captureCardAsImage();
-          if (!canvas) return;
+          if (!canvas) {
+            copyBtn.innerHTML = originalText;
+            copyBtn.disabled = false;
+            return;
+          }
 
           try {
             canvas.toBlob(async (blob) => {
-              if (!blob) return;
+              if (!blob) {
+                copyBtn.innerHTML = originalText;
+                copyBtn.disabled = false;
+                return;
+              }
               await navigator.clipboard.write([
                 new ClipboardItem({ 'image/png': blob })
               ]);
 
               // Show success feedback
               copyBtn.classList.add('success');
-              const originalText = copyBtn.innerHTML;
               copyBtn.innerHTML = '<span class="btn-icon">✓</span> コピー完了';
+              copyBtn.disabled = false;
               setTimeout(() => {
                 copyBtn.classList.remove('success');
                 copyBtn.innerHTML = originalText;
@@ -8284,6 +8314,7 @@ export class WebviewProvider {
           } catch (err) {
             console.error('Failed to copy image:', err);
             copyBtn.innerHTML = '<span class="btn-icon">✗</span> コピー失敗';
+            copyBtn.disabled = false;
             setTimeout(() => {
               copyBtn.innerHTML = '<span class="btn-icon">📋</span> 画像をコピー';
             }, 2000);

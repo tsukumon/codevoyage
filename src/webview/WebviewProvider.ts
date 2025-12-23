@@ -5247,21 +5247,21 @@ export class WebviewProvider {
         background: transparent;
       }
 
-      /* Heatmap intensity levels - GitHub-style green */
+      /* Heatmap intensity levels - darker = more activity */
       .period-month .calendar-day.level-0 { background: #3d4451; }
-      .period-month .calendar-day.level-1 { background: #0e4429; }
-      .period-month .calendar-day.level-2 { background: #006d32; }
+      .period-month .calendar-day.level-1 { background: #4ade80; }
+      .period-month .calendar-day.level-2 { background: #39d353; }
       .period-month .calendar-day.level-3 { background: #26a641; }
-      .period-month .calendar-day.level-4 { background: #39d353; }
-      .period-month .calendar-day.level-5 { background: #4ade80; }
+      .period-month .calendar-day.level-4 { background: #006d32; }
+      .period-month .calendar-day.level-5 { background: #0e4429; }
 
-      /* Yearly uses same GitHub-style green */
+      /* Yearly uses same color scheme - darker = more activity */
       .period-year .calendar-day.level-0 { background: #3d4451; }
-      .period-year .calendar-day.level-1 { background: #0e4429; }
-      .period-year .calendar-day.level-2 { background: #006d32; }
+      .period-year .calendar-day.level-1 { background: #4ade80; }
+      .period-year .calendar-day.level-2 { background: #39d353; }
       .period-year .calendar-day.level-3 { background: #26a641; }
-      .period-year .calendar-day.level-4 { background: #39d353; }
-      .period-year .calendar-day.level-5 { background: #4ade80; }
+      .period-year .calendar-day.level-4 { background: #006d32; }
+      .period-year .calendar-day.level-5 { background: #0e4429; }
 
       .calendar-day.today {
         box-shadow: 0 0 0 2px var(--accent-primary);
@@ -6567,11 +6567,11 @@ export class WebviewProvider {
           <span class="legend-label">Less</span>
           <div class="legend-squares">
             <div class="legend-square level-0" style="background: #3d4451;"></div>
-            <div class="legend-square level-1" style="background: #0e4429;"></div>
-            <div class="legend-square level-2" style="background: #006d32;"></div>
+            <div class="legend-square level-1" style="background: #4ade80;"></div>
+            <div class="legend-square level-2" style="background: #39d353;"></div>
             <div class="legend-square level-3" style="background: #26a641;"></div>
-            <div class="legend-square level-4" style="background: #39d353;"></div>
-            <div class="legend-square level-5" style="background: #4ade80;"></div>
+            <div class="legend-square level-4" style="background: #006d32;"></div>
+            <div class="legend-square level-5" style="background: #0e4429;"></div>
           </div>
           <span class="legend-label">More</span>
         </div>
@@ -6640,11 +6640,11 @@ export class WebviewProvider {
         <span class="legend-label">Less</span>
         <div class="legend-squares">
           <div class="legend-square" style="background: #3d4451;"></div>
-          <div class="legend-square" style="background: #0e4429;"></div>
-          <div class="legend-square" style="background: #006d32;"></div>
-          <div class="legend-square" style="background: #26a641;"></div>
-          <div class="legend-square" style="background: #39d353;"></div>
           <div class="legend-square" style="background: #4ade80;"></div>
+          <div class="legend-square" style="background: #39d353;"></div>
+          <div class="legend-square" style="background: #26a641;"></div>
+          <div class="legend-square" style="background: #006d32;"></div>
+          <div class="legend-square" style="background: #0e4429;"></div>
         </div>
         <span class="legend-label">More</span>
       </div>
@@ -6870,6 +6870,9 @@ export class WebviewProvider {
     const maxTime = Math.max(...dailyStats.map(d => d.totalTimeMs), 1);
     const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
+    // データがある項目のみにアニメーション遅延を割り当て
+    let dataItemCount = 0;
+
     return `
       <div class="daily-bars">
         ${dailyStats.map((day, i) => {
@@ -6878,11 +6881,13 @@ export class WebviewProvider {
           const dayNum = date.getDate();
           const heightPercent = (day.totalTimeMs / maxTime) * 100;
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-          const delayIndex = i + 4;
           const hasData = day.totalTimeMs > 0;
 
+          // データがある場合のみ遅延を増加
+          const delayIndex = hasData ? (dataItemCount++ + 4) : 3;
+
           return `
-            <div class="daily-bar-item animate-fade-in delay-${delayIndex}">
+            <div class="daily-bar-item animate-fade-in delay-${hasData ? delayIndex : 3}">
               <div class="daily-bar-wrapper">
                 ${hasData ? `
                   <div class="daily-bar ${isWeekend ? 'weekend' : ''} animate-bar-grow delay-${delayIndex + 1}" style="height: ${Math.max(heightPercent, 5)}%">
@@ -6890,7 +6895,7 @@ export class WebviewProvider {
                   </div>
                 ` : ''}
               </div>
-              <div class="daily-bar-label animate-fade-in delay-${delayIndex}">
+              <div class="daily-bar-label animate-fade-in delay-${hasData ? delayIndex : 3}">
                 <span class="day-name">${dayName}</span>
                 <span class="day-num">${dayNum}</span>
               </div>
@@ -6956,17 +6961,22 @@ export class WebviewProvider {
 
     const maxTime = Math.max(...allWeeks.map(w => w.data?.totalTimeMs || 0), 1);
 
+    // データがある項目のみにアニメーション遅延を割り当て
+    let dataItemCount = 0;
+
     return `
       <div class="daily-bars weekly-bars">
-        ${allWeeks.map((week, i) => {
+        ${allWeeks.map((week) => {
           const totalTimeMs = week.data?.totalTimeMs || 0;
           const heightPercent = (totalTimeMs / maxTime) * 100;
-          const delayIndex = i + 4;
           const weekLabel = `${week.startDate.getMonth() + 1}/${week.startDate.getDate()}`;
           const hasData = totalTimeMs > 0;
 
+          // データがある場合のみ遅延を増加
+          const delayIndex = hasData ? (dataItemCount++ + 4) : 3;
+
           return `
-            <div class="daily-bar-item animate-fade-in delay-${delayIndex}">
+            <div class="daily-bar-item animate-fade-in delay-${hasData ? delayIndex : 3}">
               <div class="daily-bar-wrapper">
                 ${hasData ? `
                   <div class="daily-bar animate-bar-grow delay-${delayIndex + 1}" style="height: ${Math.max(heightPercent, 5)}%">
@@ -6974,7 +6984,7 @@ export class WebviewProvider {
                   </div>
                 ` : ''}
               </div>
-              <div class="daily-bar-label animate-fade-in delay-${delayIndex}">
+              <div class="daily-bar-label animate-fade-in delay-${hasData ? delayIndex : 3}">
                 <span class="day-name">${week.weekNum}週目</span>
                 <span class="day-num">${weekLabel}</span>
               </div>
@@ -7004,17 +7014,22 @@ export class WebviewProvider {
 
     const maxTime = Math.max(...allMonths.map(m => m.data?.totalTimeMs || 0), 1);
 
+    // データがある項目のみにアニメーション遅延を割り当て
+    let dataItemCount = 0;
+
     return `
       <div class="daily-bars monthly-bars">
-        ${allMonths.map((monthData, i) => {
+        ${allMonths.map((monthData) => {
           const totalTimeMs = monthData.data?.totalTimeMs || 0;
           const activeDays = monthData.data?.activeDays || 0;
           const heightPercent = (totalTimeMs / maxTime) * 100;
-          const delayIndex = Math.floor(i / 2) + 4;
           const hasData = totalTimeMs > 0;
 
+          // データがある場合のみ遅延を増加（2つずつグループ化）
+          const delayIndex = hasData ? (Math.floor(dataItemCount++ / 2) + 4) : 3;
+
           return `
-            <div class="daily-bar-item animate-fade-in delay-${delayIndex}">
+            <div class="daily-bar-item animate-fade-in delay-${hasData ? delayIndex : 3}">
               <div class="daily-bar-wrapper">
                 ${hasData ? `
                   <div class="daily-bar animate-bar-grow delay-${delayIndex + 1}" style="height: ${Math.max(heightPercent, 5)}%">
@@ -7022,7 +7037,7 @@ export class WebviewProvider {
                   </div>
                 ` : ''}
               </div>
-              <div class="daily-bar-label animate-fade-in delay-${delayIndex}">
+              <div class="daily-bar-label animate-fade-in delay-${hasData ? delayIndex : 3}">
                 <span class="day-name">${monthNames[monthData.month - 1]}</span>
                 <span class="day-num">${activeDays}d</span>
               </div>

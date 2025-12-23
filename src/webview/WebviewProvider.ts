@@ -40,8 +40,8 @@ export class WebviewProvider {
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'codevoyageWeeklyReview',
-      'Code Voyage',
+      'codevoyageDashboard',
+      '#codevoyage',
       column,
       {
         enableScripts: true,

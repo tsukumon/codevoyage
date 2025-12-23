@@ -2404,6 +2404,225 @@ export class WebviewProvider {
         letter-spacing: 0.03em;
       }
 
+      /* === 月間スタイルまとめスライド === */
+      .monthly-styles-slide {
+        overflow: hidden;
+        background: #0a0a0f;
+      }
+
+      .monthly-styles-slide .slide-content {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 2rem;
+      }
+
+      .monthly-styles-bg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .monthly-bg-gradient {
+        position: absolute;
+        inset: -50%;
+        background:
+          radial-gradient(ellipse 80% 50% at 20% 30%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+          radial-gradient(ellipse 60% 80% at 80% 70%, rgba(120, 80, 220, 0.12) 0%, transparent 50%),
+          radial-gradient(ellipse 50% 50% at 50% 50%, rgba(200, 100, 180, 0.08) 0%, transparent 40%);
+        animation: monthlyMeshFloat 12s ease-in-out infinite;
+      }
+
+      @keyframes monthlyMeshFloat {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(2%, -2%) rotate(1deg); }
+        66% { transform: translate(-1%, 1%) rotate(-0.5deg); }
+      }
+
+      .monthly-floating-shapes {
+        position: absolute;
+        inset: 0;
+      }
+
+      .monthly-floating-shapes::before,
+      .monthly-floating-shapes::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.06;
+        background: var(--theme-color);
+      }
+
+      .monthly-floating-shapes::before {
+        width: 300px;
+        height: 300px;
+        top: -100px;
+        right: -100px;
+        animation: monthlyShapeFloat 8s ease-in-out infinite;
+      }
+
+      .monthly-floating-shapes::after {
+        width: 200px;
+        height: 200px;
+        bottom: -50px;
+        left: -50px;
+        animation: monthlyShapeFloat 10s ease-in-out infinite reverse;
+      }
+
+      @keyframes monthlyShapeFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(20px, -20px) scale(1.1); }
+      }
+
+      /* 月間スタイルグリッド */
+      .monthly-styles-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        width: 100%;
+        max-width: 600px;
+      }
+
+      .monthly-style-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .monthly-style-card.animate-slide-up {
+        animation: monthlyCardSlideUp 0.6s ease-out var(--card-delay, 0.3s) both;
+      }
+
+      @keyframes monthlyCardSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .monthly-style-card:hover {
+        background: rgba(255, 255, 255, 0.07);
+        transform: translateY(-2px);
+        border-color: rgba(168, 85, 247, 0.3);
+      }
+
+      .monthly-card-emoji {
+        font-size: 2.5rem;
+        line-height: 1;
+        flex-shrink: 0;
+        filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.3));
+      }
+
+      .monthly-card-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .monthly-card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 0.4rem 0;
+        letter-spacing: -0.01em;
+      }
+
+      .monthly-card-desc {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0 0 0.6rem 0;
+        line-height: 1.4;
+      }
+
+      .monthly-card-stat {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--theme-color);
+        padding: 0.25rem 0.75rem;
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.25);
+        border-radius: 100px;
+      }
+
+      /* 月間スライドのアニメーション用クラス */
+      .monthly-styles-slide .animate-pop-in {
+        opacity: 0;
+        transform: scale(0);
+      }
+
+      .monthly-styles-slide.active .animate-pop-in {
+        animation: monthlyPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+      }
+
+      .monthly-styles-slide .animate-pop-in.delay-1 {
+        animation-delay: 0.1s;
+      }
+
+      @keyframes monthlyPopIn {
+        from {
+          opacity: 0;
+          transform: scale(0);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .monthly-styles-slide .animate-fade-in {
+        opacity: 0;
+      }
+
+      .monthly-styles-slide.active .animate-fade-in {
+        animation: monthlyFadeIn 0.5s ease-out both;
+      }
+
+      .monthly-styles-slide .animate-fade-in.delay-2 {
+        animation-delay: 0.2s;
+      }
+
+      .monthly-styles-slide .animate-fade-in.delay-6 {
+        animation-delay: 1s;
+      }
+
+      @keyframes monthlyFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .monthly-styles-slide .slide-message {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-align: center;
+        margin-top: 0.5rem;
+      }
+
+      /* レスポンシブ対応 */
+      @media (max-width: 600px) {
+        .monthly-styles-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
       /* Heatmap */
       .heatmap {
         display: grid;
@@ -5119,10 +5338,15 @@ export class WebviewProvider {
     // 期間タイプに応じたタイトル
     const periodType: import('../types').ReviewPeriodType = ('periodType' in summary && summary.periodType) ? summary.periodType : 'week';
     const isWeek = periodType === 'week';
+    const isYear = periodType === 'year';
+    const isMonth = periodType === 'month';
 
-    // コーディングスタイルを取得（最大5つ）
+    // コーディングスタイルを取得
+    // 月間: 最大4つ（1スライドにまとめて表示）
+    // 年間: 最大5つ（個別スライドで表示）
     const codingStyles = ('codingStyles' in summary && summary.codingStyles) ? summary.codingStyles : [];
-    const styleCount = Math.min(codingStyles.length, 5);
+    const maxStyles = isYear ? 5 : 4;
+    const styleCount = Math.min(codingStyles.length, maxStyles);
 
     /*
      * スライド番号オフセットの計算
@@ -5131,11 +5355,12 @@ export class WebviewProvider {
     // 週間のみ「When You Code」スライドがあるため、週間以外はスライド番号を-1する
     const slideOffset = isWeek ? 0 : -1;
     // 月間・年間のみ「Coding Styles」スライドがあるため、その分を追加
-    // スタイルがある場合: 導入1 + 個別スタイル数、ない場合: 0
-    const styleSlideOffset = isWeek ? 0 : (styleCount > 0 ? 1 + styleCount : 0);
+    // 月間: 固定1（まとめ1枚のみ、導入なし）、年間: 動的（導入 + 個別スライド数）
+    const styleSlideOffset = isWeek ? 0 :
+      (styleCount > 0 ? (isYear ? 1 + styleCount : 1) : 0);
     // 月間・年間のみ「Calendar Heatmap」スライドがあるため、その分を+1する
     const calendarSlideOffset = isWeek ? 0 : 1;
-    // 結果: 週間11、月間/年間はスタイル数により11〜17スライド
+    // 結果: 週間11、月間12（固定）、年間12〜17（動的）
     const titleText = this.getPeriodTitle(periodType, summary);
     const hintText = this.getPeriodHint(periodType);
 
@@ -5368,12 +5593,11 @@ export class WebviewProvider {
         </div>
         ` : ''}
 
-        ${!isWeek && styleCount > 0 ? `
-        <!-- Slide ${11 + slideOffset}: コーディングスタイル導入（月間・年間のみ、スタイルがある場合） -->
-        <div class="slide coding-styles-intro-slide ${periodType === 'year' ? 'yearly' : 'monthly'}" data-slide="${11 + slideOffset}">
+        ${isYear && styleCount > 0 ? `
+        <!-- Slide ${11 + slideOffset}: コーディングスタイル導入（年間のみ、スタイルがある場合） -->
+        <div class="slide coding-styles-intro-slide yearly" data-slide="${11 + slideOffset}">
           <!-- 背景エフェクト -->
           <div class="intro-bg-effects">
-            ${periodType === 'year' ? `
             <div class="golden-rays"></div>
             <div class="sparkle-field">
               ${Array.from({length: 30}, () => `
@@ -5385,17 +5609,6 @@ export class WebviewProvider {
                 "></div>
               `).join('')}
             </div>
-            ` : `
-            <div class="purple-aurora"></div>
-            <div class="floating-orbs">
-              ${Array.from({length: 5}, (_, i) => `
-                <div class="aurora-orb" style="
-                  --x: ${20 + i * 15}%;
-                  --delay: ${i * 0.5}s;
-                "></div>
-              `).join('')}
-            </div>
-            `}
           </div>
 
           <!-- 絵文字オービット -->
@@ -5414,9 +5627,7 @@ export class WebviewProvider {
           <!-- メインコンテンツ -->
           <div class="slide-content intro-centered">
             <div class="intro-reveal-container">
-              ${periodType === 'year' ? `
               <div class="year-crown">👑</div>
-              ` : ''}
               <div class="intro-title-wrapper">
                 <span class="intro-line line-1">あなたの</span>
                 <span class="intro-line line-2">コーディングスタイルを</span>
@@ -5428,7 +5639,8 @@ export class WebviewProvider {
           </div>
         </div>
 
-        <!-- 個別スタイルスライド（最大5枚） -->
+        ${isYear ? `
+        <!-- 年間用: 個別スタイルスライド（最大5枚） -->
         ${codingStyles.slice(0, 5).map((style, index) => `
         <div class="slide individual-style-slide" data-slide="${12 + slideOffset + index}" style="--slide-index: ${index}">
           <!-- 背景レイヤー -->
@@ -5482,6 +5694,42 @@ export class WebviewProvider {
           </div>
         </div>
         `).join('')}
+        ` : ''}
+        ` : ''}
+
+        ${isMonth && styleCount > 0 ? `
+        <!-- 月間用: コーディングスタイルまとめスライド（最大4つ） -->
+        <div class="slide monthly-styles-slide" data-slide="${11 + slideOffset}">
+          <div class="monthly-styles-bg">
+            <div class="monthly-bg-gradient"></div>
+            <div class="monthly-floating-shapes">
+              ${Array.from({length: 6}, (_, i) => `
+                <div class="floating-shape shape-${i + 1}" style="--delay: ${i * 0.3}s"></div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="slide-content">
+            <div class="slide-header">
+              <div class="slide-emoji animate-pop-in delay-1">✨</div>
+              <h2 class="slide-title animate-fade-in delay-2">あなたのコーディングスタイル</h2>
+            </div>
+            <div class="monthly-styles-grid">
+              ${codingStyles.slice(0, 4).map((style, index) => `
+                <div class="monthly-style-card animate-slide-up" style="--card-delay: ${0.3 + index * 0.15}s">
+                  <div class="monthly-card-emoji">${style.emoji}</div>
+                  <div class="monthly-card-content">
+                    <h3 class="monthly-card-title">${style.title}</h3>
+                    <p class="monthly-card-desc">${style.description}</p>
+                    <span class="monthly-card-stat">${style.observation}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <p class="slide-message animate-fade-in delay-6">
+              どんなスタイルも、あなたの努力の証です。
+            </p>
+          </div>
+        </div>
         ` : ''}
 
         <!-- Slide ${10 + slideOffset + styleSlideOffset + calendarSlideOffset}: 最終スライド -->
@@ -5620,8 +5868,8 @@ export class WebviewProvider {
       <!-- Story-style Progress Bar -->
       <!-- ※スライド追加時は getScripts() 内のコメント「スライド数の管理について」を参照 -->
       <div class="story-progress-wrapper">
-        <div class="story-progress" id="storyProgress" data-total-slides="${isWeek ? 11 : (styleCount > 0 ? 12 + styleCount : 11)}" data-style-count="${styleCount}">
-          ${Array.from({length: isWeek ? 11 : (styleCount > 0 ? 12 + styleCount : 11)}, (_, i) => i + 1).map(i => `
+        <div class="story-progress" id="storyProgress" data-total-slides="${isWeek ? 11 : (styleCount > 0 ? (isYear ? 12 + styleCount : 12) : 11)}" data-style-count="${styleCount}" data-is-year="${isYear}">
+          ${Array.from({length: isWeek ? 11 : (styleCount > 0 ? (isYear ? 12 + styleCount : 12) : 11)}, (_, i) => i + 1).map(i => `
             <div class="story-bar" data-slide="${i}">
               <div class="story-bar-fill ${i === 1 ? 'active' : ''}"></div>
             </div>
@@ -6814,18 +7062,24 @@ export class WebviewProvider {
        *   6: 言語, 7: パターン(When You Code), 8: 夜ふかし, 9: 記録,
        *   10: 最終, 11: サマリー
        *
-       * [月間/年間: 動的スライド数（スタイル数N=0〜5により11〜17スライド）]
+       * [月間: スタイル数N=0〜4により11〜12スライド]
        *   1: タイトル, 2: 総時間, 3: 日別グラフ, 4: プロジェクト, 5: ファイル,
        *   6: 言語, 7: 夜ふかし, 8: 記録, 9: カレンダー,
-       *   (N>0の場合) 10: スタイル導入,
-       *   (N>0の場合) 11〜(10+N): 個別スタイルスライド,
-       *   (10+N または 10): 最終, (11+N または 11): サマリー
+       *   (N>0の場合) 10: スタイルまとめ（1枚に最大4つ）,
+       *   (N>0: 11, N=0: 10): 最終, (N>0: 12, N=0: 11): サマリー
+       *
+       * [年間: スタイル数N=0〜5により11〜17スライド]
+       *   1: タイトル, 2: 総時間, 3: 日別グラフ, 4: プロジェクト, 5: ファイル,
+       *   6: 言語, 7: 夜ふかし, 8: 記録, 9: カレンダー,
+       *   (N>0の場合) 10: スタイル導入, 11〜(10+N): 個別スタイル,
+       *   (10+N+1 または 10): 最終, (10+N+2 または 11): サマリー
        * ========================================
        */
       // スライド総数とスタイル数をHTMLから取得
       const storyProgressEl = document.getElementById('storyProgress');
       const totalSlides = storyProgressEl ? parseInt(storyProgressEl.dataset.totalSlides || '11') : 11;
       const styleCount = storyProgressEl ? parseInt(storyProgressEl.dataset.styleCount || '0') : 0;
+      const isYear = storyProgressEl ? storyProgressEl.dataset.isYear === 'true' : false;
 
       // スライドごとの表示時間（ミリ秒）を動的に生成
       function buildSlideDurations() {
@@ -6845,7 +7099,7 @@ export class WebviewProvider {
           };
         }
 
-        // 月間・年間: 動的スライド数
+        // 月間・年間共通: 基本スライド
         const durations = {
           1: 3000,    // タイトル - 短め
           2: 8000,    // 総時間 - 数字に注目
@@ -6859,13 +7113,20 @@ export class WebviewProvider {
         };
 
         if (styleCount > 0) {
-          // スタイルがある場合
-          durations[10] = 3000;  // スタイル導入 - 短め
-          for (let i = 0; i < styleCount; i++) {
-            durations[11 + i] = 5000;  // 各スタイルスライド
+          if (isYear) {
+            // 年間: 導入 + 個別スタイルスライド（最大5枚）
+            durations[10] = 3000;  // スタイル導入 - 短め
+            for (let i = 0; i < styleCount; i++) {
+              durations[11 + i] = 5000;
+            }
+            durations[11 + styleCount] = 6000;  // 最終スライド
+            durations[12 + styleCount] = 0;     // サマリー
+          } else {
+            // 月間: まとめスライド1枚のみ（導入なし、固定12スライド）
+            durations[10] = 15000;  // スタイルまとめ - 長め
+            durations[11] = 6000;   // 最終スライド
+            durations[12] = 0;      // サマリー
           }
-          durations[11 + styleCount] = 6000;  // 最終スライド
-          durations[12 + styleCount] = 0;     // サマリー - 自動スクロールなし
         } else {
           // スタイルがない場合
           durations[10] = 6000;  // 最終スライド

@@ -8078,6 +8078,30 @@ export class WebviewProvider {
         ctx.lineWidth = 1;
         ctx.stroke();
 
+        // Add noise texture overlay for grainy effect (matching CSS noise)
+        // Apply noise directly to card area pixels
+        const cardPixelX = Math.floor(cardX * scale);
+        const cardPixelY = Math.floor(cardY * scale);
+        const cardPixelW = Math.floor(cardW * scale);
+        const cardPixelH = Math.floor(cardH * scale);
+
+        // Get current card area pixels
+        const cardImageData = ctx.getImageData(cardPixelX, cardPixelY, cardPixelW, cardPixelH);
+        const pixels = cardImageData.data;
+
+        // Apply noise to each pixel
+        for (let i = 0; i < pixels.length; i += 4) {
+          // Random noise value (-15 to +15)
+          const noise = (Math.random() - 0.5) * 30;
+          pixels[i] = Math.max(0, Math.min(255, pixels[i] + noise));     // R
+          pixels[i + 1] = Math.max(0, Math.min(255, pixels[i + 1] + noise)); // G
+          pixels[i + 2] = Math.max(0, Math.min(255, pixels[i + 2] + noise)); // B
+          // Alpha unchanged
+        }
+
+        // Put modified pixels back
+        ctx.putImageData(cardImageData, cardPixelX, cardPixelY);
+
         // Get elements
         const brandEl = summaryCard.querySelector('.summary-brand');
         const dateEl = summaryCard.querySelector('.summary-date');

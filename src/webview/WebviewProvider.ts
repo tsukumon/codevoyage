@@ -6280,24 +6280,24 @@ export class WebviewProvider {
               <div class="summary-card-inner">
                 <div class="summary-header">
                   <div class="summary-brand-row">
-                    <span class="summary-brand">${periodType === 'year' ? `#CodeVoyage${new Date(summary.weekStartDate).getFullYear()}` : '#CodeVoyage'}</span>
+                    <span class="summary-brand">${periodType === 'year' ? `#codevoyage${new Date(summary.weekStartDate).getFullYear()}` : '#codevoyage'}</span>
                     <span class="summary-date">${this.formatDateRange(summary.weekStartDate, summary.weekEndDate)}</span>
                   </div>
                 </div>
                 <div class="summary-main">
                   <div class="summary-hero">
-                    <span class="summary-hero-label">${this.getPeriodBadge(periodType)} TOTAL TIME</span>
+                    <span class="summary-hero-label">${this.getPeriodBadge(periodType)} CODING TIME</span>
                     <span class="summary-hero-value">${formatDuration(summary.totalCodingTimeMs)}</span>
                   </div>
                 </div>
                 <div class="summary-stats">
                   <div class="summary-stat">
-                    <span class="stat-value">${formatDuration(summary.longestSessionMs)}</span>
-                    <span class="stat-label">Longest Session</span>
+                    <span class="stat-value">${periodType === 'year' ? (summary as YearlySummary).totalDaysActive : periodType === 'month' ? (summary as MonthlySummary).activeDaysCount : summary.dailyBreakdown.filter(d => d.totalTimeMs > 0).length}<span class="stat-unit">days</span></span>
+                    <span class="stat-label">Days</span>
                   </div>
                   <div class="summary-stat">
-                    <span class="stat-value">${summary.streakDays}<span class="stat-unit">days</span></span>
-                    <span class="stat-label">Streak</span>
+                    <span class="stat-value">${formatDuration(summary.longestSessionMs)}</span>
+                    <span class="stat-label">Longest Session</span>
                   </div>
                   <div class="summary-stat">
                     <span class="stat-value">${summary.topLanguages[0]?.displayName || '-'}</span>
@@ -8117,7 +8117,7 @@ export class WebviewProvider {
           ctx.fillStyle = theme.brandColor;
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.fillText(brandEl.textContent || '#CodeVoyage', pos.x, pos.centerY);
+          ctx.fillText(brandEl.textContent || '#codevoyage', pos.x, pos.centerY);
         }
 
         // Draw date (right aligned)

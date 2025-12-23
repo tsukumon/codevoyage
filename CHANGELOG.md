@@ -7,14 +7,10 @@ All notable changes to CodeVoyage will be documented in this file.
 ### Planned
 - English language support
 
-## [1.0.5] - 2024-12-24
+## [1.0.6] - 2024-12-24
 
 ### Changed
-- Time tracking now continues when non-editor tabs are active (Terminal, Claude Code, Output panel, etc.)
-  - Uses last opened file's language/project information for recording
-
-### Fixed
-- Coding time was not counted when using Terminal or AI assistant tabs
+- Optimized noise texture processing for faster image generation
 
 ## [1.0.4] - 2024-12-23
 

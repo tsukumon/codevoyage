@@ -60,7 +60,7 @@ export class StatisticsService {
   /**
    * 週間サマリーを生成
    */
-  public generateWeeklySummary(weekOffset: number = 0): WeeklySummary {
+  public generateWeeklySummary(weekOffset: number = 0): WeeklySummary | null {
     // モックデータモードの場合はモックデータを返す
     if (this.useMockData) {
       return generateMockWeeklySummary(weekOffset);
@@ -69,10 +69,10 @@ export class StatisticsService {
     const { start, end } = getWeekBounds(weekOffset);
     const dailyStats = this.storageService.getStatsRange(start, end);
 
-    // データがない場合はモックデータを返す
+    // データがない場合はnullを返す
     const totalTime = dailyStats.reduce((sum, d) => sum + d.totalTimeMs, 0);
     if (totalTime === 0) {
-      return generateMockWeeklySummary(weekOffset);
+      return null;
     }
 
     // 総時間を計算
@@ -169,7 +169,7 @@ export class StatisticsService {
   /**
    * 月間サマリーを生成
    */
-  public generateMonthlySummary(monthOffset: number = 0): MonthlySummary {
+  public generateMonthlySummary(monthOffset: number = 0): MonthlySummary | null {
     // モックデータモードの場合はモックデータを返す
     if (this.useMockData) {
       return generateMockMonthlySummary(monthOffset);
@@ -178,10 +178,10 @@ export class StatisticsService {
     const { start, end, monthName } = getMonthBounds(monthOffset);
     const dailyStats = this.storageService.getStatsRange(start, end);
 
-    // データがない場合はモックデータを返す
+    // データがない場合はnullを返す
     const totalTime = dailyStats.reduce((sum, d) => sum + d.totalTimeMs, 0);
     if (totalTime === 0) {
-      return generateMockMonthlySummary(monthOffset);
+      return null;
     }
 
     // 基本の週間サマリーと同じ計算を行う
@@ -307,16 +307,16 @@ export class StatisticsService {
 
     // 12月以外は null を返す（呼び出し側でチェック済みの想定だが念のため）
     if (!isDecember() && yearOffset === 0) {
-      return generateMockYearlySummary(yearOffset); // デモ用にモックを返す
+      return null;
     }
 
     const { start, end, year } = getYearBounds(yearOffset);
     const dailyStats = this.storageService.getStatsRange(start, end);
 
-    // データがない場合はモックデータを返す
+    // データがない場合はnullを返す
     const totalTime = dailyStats.reduce((sum, d) => sum + d.totalTimeMs, 0);
     if (totalTime === 0) {
-      return generateMockYearlySummary(yearOffset);
+      return null;
     }
 
     // 基本計算

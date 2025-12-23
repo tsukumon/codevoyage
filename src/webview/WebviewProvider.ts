@@ -81,22 +81,28 @@ export class WebviewProvider {
       );
     } else {
       const summary = this.getSummaryForCurrentPeriod();
-      WebviewProvider.currentPanel.webview.html = this.getWebviewContent(
-        WebviewProvider.currentPanel.webview,
-        summary
-      );
+      if (summary === null) {
+        WebviewProvider.currentPanel.webview.html = this.getNoDataContent(
+          WebviewProvider.currentPanel.webview
+        );
+      } else {
+        WebviewProvider.currentPanel.webview.html = this.getWebviewContent(
+          WebviewProvider.currentPanel.webview,
+          summary
+        );
+      }
     }
   }
 
   /**
    * 現在の期間タイプに応じたサマリーを取得
    */
-  private getSummaryForCurrentPeriod(): WeeklySummary | MonthlySummary | YearlySummary {
+  private getSummaryForCurrentPeriod(): WeeklySummary | MonthlySummary | YearlySummary | null {
     switch (this.currentPeriodType) {
       case 'month':
         return this.statsService.generateMonthlySummary(this.currentMonthOffset);
       case 'year':
-        return this.statsService.generateYearlySummary(this.currentYearOffset) as YearlySummary;
+        return this.statsService.generateYearlySummary(this.currentYearOffset);
       case 'week':
       default:
         return this.statsService.generateWeeklySummary(this.currentWeekOffset);
@@ -354,6 +360,110 @@ export class WebviewProvider {
 
         window.addEventListener('resize', adjustScale);
         adjustScale();
+    </script>
+</body>
+</html>`;
+  }
+
+  /**
+   * データがない場合の画面を生成
+   */
+  private getNoDataContent(webview: vscode.Webview): string {
+    const nonce = this.getNonce();
+    const periodLabel = this.currentPeriodType === 'week' ? '週間' :
+                        this.currentPeriodType === 'month' ? '月間' : '年間';
+
+    return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'none';
+        style-src ${webview.cspSource} 'unsafe-inline';
+        script-src 'nonce-${nonce}';
+        img-src ${webview.cspSource} data:;
+        font-src ${webview.cspSource};
+    ">
+    <title>データがありません</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #e2e8f0;
+      }
+      .container {
+        text-align: center;
+        padding: 2rem;
+        max-width: 500px;
+      }
+      .icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      .title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .message {
+        color: #94a3b8;
+        line-height: 1.8;
+        margin-bottom: 2rem;
+      }
+      .back-btn {
+        display: inline-block;
+        padding: 0.75rem 2rem;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        border-radius: 100px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .back-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+      }
+    </style>
+</head>
+<body>
+    <div class="container">
+      <div class="icon">📊</div>
+      <h1 class="title">${periodLabel}のデータがまだ少ないようです</h1>
+      <p class="message">
+        コーディングを続けると、ここに統計が表示されます。<br>
+        VS Codeでコードを書くだけで自動的に記録されます。
+      </p>
+      <button class="back-btn" id="backBtn">戻る</button>
+    </div>
+    <script nonce="${nonce}">
+      const vscode = acquireVsCodeApi();
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          vscode.postMessage({ command: 'backToPeriodSelection' });
+        });
+      }
     </script>
 </body>
 </html>`;

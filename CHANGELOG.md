@@ -2,6 +2,26 @@
 
 All notable changes to CodeVoyage will be documented in this file.
 
+## [Future]
+
+### Planned
+- English language support
+
+## [1.0.4] - 2024-12-23
+
+### Added
+- "Jump to current period" button (今週/今月/今年) in navigation
+- Noise texture overlay on downloaded summary card images
+- "No data" screen with navigation when period has insufficient data
+
+### Changed
+- Navigation buttons now show specific dates (e.g., "12/16週", "2025年1月", "2024年")
+- Navigation style unified between slides and no-data screen
+- Mock data now only appears in demo mode, not when regular data is missing
+
+### Fixed
+- Idle timeout setting now accepts 0 to disable idle detection
+
 ## [1.0.3] - 2024-12-23
 
 ### Fixed

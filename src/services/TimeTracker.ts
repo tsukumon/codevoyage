@@ -15,6 +15,12 @@ export class TimeTracker implements vscode.Disposable {
   private lastUpdateTime: number = Date.now();
   private sessionStartTime: number = Date.now();
   private editedFiles: Set<string> = new Set();
+  private lastSessionInfo: {
+    workspaceName: string;
+    workspacePath: string;
+    languageId: string;
+    fileName: string;
+  } | null = null;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -77,6 +83,29 @@ export class TimeTracker implements vscode.Disposable {
         this.handleWorkspaceChange();
       })
     );
+
+    // ターミナルのアクティビティ検出
+    this.disposables.push(
+      vscode.window.onDidChangeActiveTerminal(() => {
+        this.activityDetector.recordActivity();
+      })
+    );
+
+    this.disposables.push(
+      vscode.window.onDidOpenTerminal(() => {
+        this.activityDetector.recordActivity();
+      })
+    );
+
+    this.disposables.push(
+      vscode.window.onDidCloseTerminal(() => {
+        this.activityDetector.recordActivity();
+      })
+    );
+
+    // Webviewパネル等への切り替え検出（エディタがundefinedになった場合）
+    // Note: onDidChangeActiveTextEditorは既に登録済みだが、
+    // handleEditorChangeでundefinedの場合もアクティビティを記録するよう修正済み
   }
 
   /**
@@ -145,7 +174,8 @@ export class TimeTracker implements vscode.Disposable {
   private async resumeTracking(): Promise<void> {
     if (this.isTracking && !this.currentSession) {
       const editor = vscode.window.activeTextEditor;
-      if (editor) {
+      // エディタがなくてもlastSessionInfoがあれば継続
+      if (editor || this.lastSessionInfo) {
         await this.startNewSession(editor);
       }
     }
@@ -154,22 +184,47 @@ export class TimeTracker implements vscode.Disposable {
 
   /**
    * 新しいセッションを開始
+   * エディタがない場合は前回のセッション情報を使用して継続
    */
-  private async startNewSession(editor: vscode.TextEditor): Promise<void> {
+  private async startNewSession(editor?: vscode.TextEditor): Promise<void> {
     if (this.currentSession) {
       await this.endCurrentSession();
     }
 
-    const workspace = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+    // エディタがある場合は情報を取得、ない場合は前回の情報を使用
+    let sessionInfo: {
+      workspaceName: string;
+      workspacePath: string;
+      languageId: string;
+      fileName: string;
+    };
+
+    if (editor) {
+      const workspace = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+      sessionInfo = {
+        workspaceName: workspace?.name || 'Unknown',
+        workspacePath: workspace?.uri.fsPath || 'unknown',
+        languageId: editor.document.languageId,
+        fileName: editor.document.fileName,
+      };
+      // 次回のために保存
+      this.lastSessionInfo = sessionInfo;
+    } else if (this.lastSessionInfo) {
+      // エディタがない場合は前回の情報を使用
+      sessionInfo = this.lastSessionInfo;
+    } else {
+      // 初回でエディタもない場合はスキップ
+      return;
+    }
 
     this.currentSession = {
       id: generateUUID(),
       startTime: Date.now(),
       endTime: null,
-      workspaceName: workspace?.name || 'Unknown',
-      workspacePath: workspace?.uri.fsPath || 'unknown',
-      languageId: editor.document.languageId,
-      fileName: editor.document.fileName,
+      workspaceName: sessionInfo.workspaceName,
+      workspacePath: sessionInfo.workspacePath,
+      languageId: sessionInfo.languageId,
+      fileName: sessionInfo.fileName,
       isActive: true,
       charactersEdited: 0
     };
@@ -178,8 +233,11 @@ export class TimeTracker implements vscode.Disposable {
     this.lastUpdateTime = Date.now();
     this.activityDetector.recordActivity();
 
-    // ファイルアクセスを記録（ワークスペース名も一緒に記録）
-    this.storageService.recordFileAccess(editor.document.fileName, workspace?.name);
+    // ファイルアクセスを記録（エディタがある場合のみ）
+    if (editor) {
+      const workspace = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+      this.storageService.recordFileAccess(editor.document.fileName, workspace?.name);
+    }
   }
 
   /**
@@ -232,10 +290,10 @@ export class TimeTracker implements vscode.Disposable {
       return;
     }
 
-    // セッションがなければ新規作成
+    // セッションがなければ新規作成（エディタがなくてもlastSessionInfoがあれば継続）
     if (!this.currentSession) {
       const editor = vscode.window.activeTextEditor;
-      if (editor) {
+      if (editor || this.lastSessionInfo) {
         await this.startNewSession(editor);
       }
       return;

@@ -2,7 +2,7 @@
   "name": "codevoyage-highlight",
   "displayName": "#CodeVoyage",
   "description": "Track your coding journey and visualize weekly, monthly, and yearly coding statistics in a beautiful presentation",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "tsukumon",
   "icon": "images/icon.png",
   "galleryBanner": {

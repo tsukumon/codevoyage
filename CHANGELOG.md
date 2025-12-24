@@ -2,6 +2,15 @@
 
 All notable changes to CodeVoyage will be documented in this file.
 
+## [1.0.8] - 2024-12-24
+
+### Changed
+- Longest session now continues across file switches (no longer resets when switching files)
+- File statistics now track editing time instead of open count, sorted by time
+
+### Fixed
+- Session continuity - switching between files, terminal, or webview no longer ends the session
+
 ## [1.0.7] - 2024-12-24
 
 ### Added

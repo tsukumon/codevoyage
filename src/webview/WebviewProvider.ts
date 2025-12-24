@@ -5976,7 +5976,7 @@ export class WebviewProvider {
                     <span class="file-name">${this.escapeHtml(f.fileName)}</span>
                     <span class="file-project">${this.escapeHtml(f.projectName)}</span>
                   </div>
-                  <span class="file-count">${f.accessCount} opens</span>
+                  <span class="file-count">${formatDuration(f.timeMs)}</span>
                 </div>
               `}).join('')}
               ${summary.topFiles.length === 0 ? `<p class="subtitle animate-fade-in delay-3">${t('noData', lang)}</p>` : ''}

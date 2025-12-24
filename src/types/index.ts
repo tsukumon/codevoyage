@@ -23,7 +23,7 @@ export interface DailyStats {
   projectTime: Record<string, number>;
   languageTime: Record<string, number>;
   hourlyDistribution: number[];
-  fileAccessCount: Record<string, number>;
+  fileTimeMs: Record<string, number>;  // ファイルパス → 編集時間(ms)のマッピング
   fileWorkspaces: Record<string, string>; // ファイルパス → ワークスペース名のマッピング
   editedFileCount: number;
   totalCharactersEdited: number;
@@ -59,7 +59,7 @@ export interface FileStat {
   fileName: string;
   filePath: string;
   projectName: string;
-  accessCount: number;
+  timeMs: number;  // ファイルの編集時間(ms)
   percentage: number;
 }
 

@@ -90,9 +90,9 @@ export class StatisticsService {
     const languageTimes = this.aggregateLanguageTimes(dailyStats);
     const topLanguages = this.calculateTopLanguages(languageTimes, totalCodingTimeMs);
 
-    // ファイルアクセスを集計
+    // ファイル時間を集計
     const fileData = this.aggregateFileData(dailyStats);
-    const topFiles = this.calculateTopFiles(fileData.accesses, fileData.workspaces);
+    const topFiles = this.calculateTopFiles(fileData.times, fileData.workspaces);
 
     // ピーク日を検出
     const peakDay = this.findPeakDay(dailyStats);
@@ -198,7 +198,7 @@ export class StatisticsService {
     const topLanguages = this.calculateTopLanguages(languageTimes, totalCodingTimeMs);
 
     const fileData = this.aggregateFileData(dailyStats);
-    const topFiles = this.calculateTopFiles(fileData.accesses, fileData.workspaces);
+    const topFiles = this.calculateTopFiles(fileData.times, fileData.workspaces);
 
     const peakDay = this.findPeakDay(dailyStats);
     const hourlyDistribution = this.aggregateHourlyDistribution(dailyStats);
@@ -333,7 +333,7 @@ export class StatisticsService {
     const topLanguages = this.calculateTopLanguages(languageTimes, totalCodingTimeMs);
 
     const fileData = this.aggregateFileData(dailyStats);
-    const topFiles = this.calculateTopFiles(fileData.accesses, fileData.workspaces);
+    const topFiles = this.calculateTopFiles(fileData.times, fileData.workspaces);
 
     const peakDay = this.findPeakDay(dailyStats);
     const hourlyDistribution = this.aggregateHourlyDistribution(dailyStats);
@@ -683,15 +683,23 @@ export class StatisticsService {
    * ファイルアクセスとワークスペースを集計
    */
   private aggregateFileData(dailyStats: DailyStats[]): {
-    accesses: Record<string, number>;
+    times: Record<string, number>;
     workspaces: Record<string, string>;
   } {
-    const accesses: Record<string, number> = {};
+    const times: Record<string, number> = {};
     const workspaces: Record<string, string> = {};
 
     for (const day of dailyStats) {
-      for (const [file, count] of Object.entries(day.fileAccessCount)) {
-        accesses[file] = (accesses[file] || 0) + count;
+      // 新形式 (fileTimeMs) をサポート
+      if (day.fileTimeMs) {
+        for (const [file, timeMs] of Object.entries(day.fileTimeMs)) {
+          times[file] = (times[file] || 0) + timeMs;
+        }
+      }
+      // 既存データとの互換性のためfileAccessCountもサポート（回数→0として扱う）
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((day as any).fileAccessCount && !day.fileTimeMs) {
+        // 古いデータは表示しない（時間データがないため）
       }
       // ワークスペースマッピングを集計（既存データとの互換性のため存在チェック）
       if (day.fileWorkspaces) {
@@ -701,20 +709,20 @@ export class StatisticsService {
       }
     }
 
-    return { accesses, workspaces };
+    return { times, workspaces };
   }
 
   /**
-   * トップファイルを計算
+   * トップファイルを計算（時間順にソート）
    */
   private calculateTopFiles(
-    fileAccesses: Record<string, number>,
+    fileTimes: Record<string, number>,
     fileWorkspaces: Record<string, string>
   ): FileStat[] {
-    const totalAccesses = Object.values(fileAccesses).reduce((a, b) => a + b, 0);
+    const totalTime = Object.values(fileTimes).reduce((a, b) => a + b, 0);
 
-    return Object.entries(fileAccesses)
-      .map(([path, count]) => {
+    return Object.entries(fileTimes)
+      .map(([path, timeMs]) => {
         // パスからファイル名を抽出
         const parts = path.replace(/\\/g, '/').split('/');
         const fileName = parts.pop() || path;
@@ -725,11 +733,11 @@ export class StatisticsService {
           fileName,
           filePath: path,
           projectName,
-          accessCount: count,
-          percentage: totalAccesses > 0 ? (count / totalAccesses) * 100 : 0
+          timeMs,
+          percentage: totalTime > 0 ? (timeMs / totalTime) * 100 : 0
         };
       })
-      .sort((a, b) => b.accessCount - a.accessCount)
+      .sort((a, b) => b.timeMs - a.timeMs)
       .slice(0, 5);
   }
 

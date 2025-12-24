@@ -4,6 +4,36 @@ import { ActivityDetector } from './ActivityDetector';
 import { StorageService } from './StorageService';
 import { generateUUID, isNightOwlHour, formatDurationShort } from '../utils/dateUtils';
 
+/**
+ * コーディング時間を追跡するサービス
+ *
+ * ## セッションの仕様
+ *
+ * ### セッションの定義
+ * - セッション = VSCodeでの連続作業期間
+ * - startTime: セッション開始時刻（ファイル切り替えでは更新されない）
+ * - endTime: セッション終了時刻
+ *
+ * ### セッション終了の条件
+ * 1. アイドルタイムアウト超過（設定値、0で無効化）
+ * 2. VSCode終了/トラッキング停止
+ * 3. ワークスペース変更
+ *
+ * ### セッションが終了しないケース
+ * 1. ファイル切り替え → セッション情報（languageId, fileName等）のみ更新
+ * 2. ターミナル/Webview切り替え → セッション継続
+ * 3. VSCodeウィンドウのフォーカス喪失 → セッション継続、時間カウント継続
+ *
+ * ### アイドルタイムアウト=0の動作
+ * - アイドル判定無効（常にアクティブ扱い）
+ * - VSCode外の作業時間もカウントされる
+ * - これは意図した動作
+ *
+ * ### 言語別・プロジェクト別・ファイル別時間の記録
+ * - ファイル切り替え時に saveSessionProgress() でここまでの時間を前の言語/プロジェクト/ファイルに記録
+ * - その後 updateSessionInfo() でセッション情報を更新
+ * - 次の記録は新しい言語/プロジェクト/ファイルでカウント
+ */
 export class TimeTracker implements vscode.Disposable {
   private currentSession: CodingSession | null = null;
   private activityDetector: ActivityDetector;
@@ -232,12 +262,7 @@ export class TimeTracker implements vscode.Disposable {
     this.sessionStartTime = Date.now();
     this.lastUpdateTime = Date.now();
     this.activityDetector.recordActivity();
-
-    // ファイルアクセスを記録（エディタがある場合のみ）
-    if (editor) {
-      const workspace = vscode.workspace.getWorkspaceFolder(editor.document.uri);
-      this.storageService.recordFileAccess(editor.document.fileName, workspace?.name);
-    }
+    // ファイル時間は saveSessionProgress で記録されるため、ここでは記録しない
   }
 
   /**
@@ -257,6 +282,8 @@ export class TimeTracker implements vscode.Disposable {
 
   /**
    * セッションの進捗を保存
+   * - 言語別・プロジェクト別時間を recordSessionTime で記録
+   * - ファイル別時間を recordFileTime で記録
    */
   private async saveSessionProgress(): Promise<void> {
     if (!this.currentSession) return;
@@ -266,11 +293,19 @@ export class TimeTracker implements vscode.Disposable {
     const hour = new Date().getHours();
     const isNightOwl = isNightOwlHour(hour);
 
+    // 言語別・プロジェクト別時間を記録
     await this.storageService.recordSessionTime(
       this.currentSession,
       duration,
       hour,
       isNightOwl
+    );
+
+    // ファイル別時間を記録
+    await this.storageService.recordFileTime(
+      this.currentSession.fileName,
+      duration,
+      this.currentSession.workspaceName
     );
 
     this.lastUpdateTime = now;
@@ -306,6 +341,7 @@ export class TimeTracker implements vscode.Disposable {
 
   /**
    * エディタ変更を処理
+   * ファイル切り替え時はセッションを終了せず、情報のみ更新する
    */
   private async handleEditorChange(editor: vscode.TextEditor | undefined): Promise<void> {
     if (!this.isTracking) return;
@@ -319,22 +355,43 @@ export class TimeTracker implements vscode.Disposable {
         this.storageService.incrementEditedFileCount();
       }
 
-      // アクティブファイルが変わった場合、新しいセッションを開始
-      // （同じワークスペース・言語でも、ファイルが変われば新しいセッション）
       const newFileName = editor.document.fileName;
 
       if (this.currentSession && this.currentSession.fileName !== newFileName) {
-        // 前のセッションの時間を保存してから新しいセッションを開始
+        // ファイル切り替え: セッションは継続し、情報のみ更新
+        // まず現在のファイルの時間を保存
         await this.saveSessionProgress();
-        await this.startNewSession(editor);
+        // セッション情報を更新（セッションは終了しない）
+        this.updateSessionInfo(editor);
       } else if (!this.currentSession) {
+        // セッションがない場合は新規作成
         await this.startNewSession(editor);
       }
-
-      // ファイルアクセスを記録（ワークスペース名も一緒に記録）
-      const workspace = vscode.workspace.getWorkspaceFolder(editor.document.uri);
-      this.storageService.recordFileAccess(editor.document.fileName, workspace?.name);
     }
+  }
+
+  /**
+   * セッション情報を更新（セッションは終了しない）
+   * ファイル切り替え時に呼び出され、languageId, fileName, workspace情報を更新する
+   */
+  private updateSessionInfo(editor: vscode.TextEditor): void {
+    if (!this.currentSession) return;
+
+    const workspace = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+
+    // セッション情報を更新
+    this.currentSession.languageId = editor.document.languageId;
+    this.currentSession.fileName = editor.document.fileName;
+    this.currentSession.workspaceName = workspace?.name || 'Unknown';
+    this.currentSession.workspacePath = workspace?.uri.fsPath || 'unknown';
+
+    // lastSessionInfo も更新
+    this.lastSessionInfo = {
+      workspaceName: this.currentSession.workspaceName,
+      workspacePath: this.currentSession.workspacePath,
+      languageId: this.currentSession.languageId,
+      fileName: this.currentSession.fileName,
+    };
   }
 
   /**

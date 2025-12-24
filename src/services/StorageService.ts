@@ -134,7 +134,7 @@ export class StorageService {
       projectTime: {},
       languageTime: {},
       hourlyDistribution: new Array(24).fill(0),
-      fileAccessCount: {},
+      fileTimeMs: {},
       fileWorkspaces: {},
       editedFileCount: 0,
       totalCharactersEdited: 0,
@@ -191,9 +191,9 @@ export class StorageService {
   }
 
   /**
-   * ファイルアクセスを記録
+   * ファイル編集時間を記録
    */
-  public async recordFileAccess(filePath: string, workspaceName?: string): Promise<void> {
+  public async recordFileTime(filePath: string, durationMs: number, workspaceName?: string): Promise<void> {
     const stats = this.getOrCreateTodayStats();
 
     // 既存データとの互換性のためfileWorkspacesがなければ初期化
@@ -201,8 +201,13 @@ export class StorageService {
       stats.fileWorkspaces = {};
     }
 
-    stats.fileAccessCount[filePath] =
-      (stats.fileAccessCount[filePath] || 0) + 1;
+    // 既存データとの互換性のためfileTimeMsがなければ初期化
+    if (!stats.fileTimeMs) {
+      stats.fileTimeMs = {};
+    }
+
+    stats.fileTimeMs[filePath] =
+      (stats.fileTimeMs[filePath] || 0) + durationMs;
 
     // ワークスペース名が指定されていれば記録
     if (workspaceName) {

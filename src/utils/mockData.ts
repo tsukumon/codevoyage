@@ -119,12 +119,12 @@ function generateMockDailyStats(startDate: string): DailyStats[] {
         'markdown': totalTimeMs * 0.10
       },
       hourlyDistribution,
-      fileAccessCount: {
-        '/home/user/projects/my-awesome-app/src/App.tsx': Math.floor(Math.random() * 20) + 10,
-        '/home/user/projects/api-server/src/index.ts': Math.floor(Math.random() * 15) + 5,
-        '/home/user/projects/design-system/src/styles.css': Math.floor(Math.random() * 10) + 3,
-        '/home/user/projects/my-awesome-app/package.json': Math.floor(Math.random() * 8) + 2,
-        '/home/user/projects/my-awesome-app/README.md': Math.floor(Math.random() * 5) + 1
+      fileTimeMs: {
+        '/home/user/projects/my-awesome-app/src/App.tsx': totalTimeMs * 0.30,
+        '/home/user/projects/api-server/src/index.ts': totalTimeMs * 0.25,
+        '/home/user/projects/design-system/src/styles.css': totalTimeMs * 0.20,
+        '/home/user/projects/my-awesome-app/package.json': totalTimeMs * 0.15,
+        '/home/user/projects/my-awesome-app/README.md': totalTimeMs * 0.10
       },
       fileWorkspaces: {
         '/home/user/projects/my-awesome-app/src/App.tsx': 'my-awesome-app',
@@ -226,35 +226,35 @@ function generateMockFiles(): FileStat[] {
       fileName: 'App.tsx',
       filePath: '/home/user/projects/my-awesome-app/src/App.tsx',
       projectName: 'my-awesome-app',
-      accessCount: 87,
+      timeMs: 2 * 60 * 60 * 1000 + 30 * 60 * 1000, // 2h 30m
       percentage: 25
     },
     {
       fileName: 'index.ts',
       filePath: '/home/user/projects/api-server/src/index.ts',
       projectName: 'api-server',
-      accessCount: 64,
+      timeMs: 1 * 60 * 60 * 1000 + 48 * 60 * 1000, // 1h 48m
       percentage: 18
     },
     {
       fileName: 'styles.css',
       filePath: '/home/user/projects/design-system/src/styles.css',
       projectName: 'design-system',
-      accessCount: 52,
+      timeMs: 1 * 60 * 60 * 1000 + 30 * 60 * 1000, // 1h 30m
       percentage: 15
     },
     {
       fileName: 'UserService.ts',
       filePath: '/home/user/projects/api-server/src/services/UserService.ts',
       projectName: 'api-server',
-      accessCount: 41,
+      timeMs: 1 * 60 * 60 * 1000 + 12 * 60 * 1000, // 1h 12m
       percentage: 12
     },
     {
       fileName: 'Button.tsx',
       filePath: '/home/user/projects/design-system/src/components/Button.tsx',
       projectName: 'design-system',
-      accessCount: 38,
+      timeMs: 1 * 60 * 60 * 1000 + 6 * 60 * 1000, // 1h 6m
       percentage: 11
     }
   ];
@@ -597,9 +597,9 @@ function generateMockMonthlyDailyStats(startDate: string, endDate: string): Dail
         'markdown': totalTimeMs * 0.10
       },
       hourlyDistribution,
-      fileAccessCount: {
-        '/home/user/projects/my-awesome-app/src/App.tsx': Math.floor(Math.random() * 20) + 10,
-        '/home/user/projects/api-server/src/index.ts': Math.floor(Math.random() * 15) + 5
+      fileTimeMs: {
+        '/home/user/projects/my-awesome-app/src/App.tsx': totalTimeMs * 0.40,
+        '/home/user/projects/api-server/src/index.ts': totalTimeMs * 0.30
       },
       fileWorkspaces: {
         '/home/user/projects/my-awesome-app/src/App.tsx': 'my-awesome-app',
@@ -672,7 +672,7 @@ function generateMockYearlyDailyStats(year: number): DailyStats[] {
           'rust': totalTimeMs * Math.max(0, (month - 6) * 0.02) // 後半からRust開始
         },
         hourlyDistribution,
-        fileAccessCount: {},
+        fileTimeMs: {},
         fileWorkspaces: {},
         editedFileCount: Math.floor(Math.random() * 10) + 5,
         totalCharactersEdited: Math.floor(Math.random() * 5000) + 2000,

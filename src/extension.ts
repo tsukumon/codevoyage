@@ -63,11 +63,14 @@ export async function activate(context: vscode.ExtensionContext) {
  */
 function updateSettings(): void {
   const config = vscode.workspace.getConfiguration('codevoyage');
-  const idleTimeoutMs = (config.get<number>('idleTimeout') || 300) * 1000;
+  const idleTimeoutMs = (config.get<number>('idleTimeout') ?? 300) * 1000;
+
+  const language = config.get<'ja' | 'en'>('language') ?? 'ja';
 
   storageService?.updateSettings({
     idleTimeoutMs,
-    showStatusBar: config.get<boolean>('showStatusBar') ?? true
+    showStatusBar: config.get<boolean>('showStatusBar') ?? true,
+    language
   });
 
   // ActivityDetectorのタイムアウトも更新

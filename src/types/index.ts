@@ -176,6 +176,7 @@ export interface StorageSchema {
 export interface ExtensionSettings {
   idleTimeoutMs: number;
   showStatusBar: boolean;
+  language: 'ja' | 'en';
 }
 
 /**

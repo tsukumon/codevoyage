@@ -3,6 +3,7 @@ import { WeeklySummary, MonthlySummary, YearlySummary, ReviewPeriodType } from '
 import { StatisticsService } from '../services/StatisticsService';
 import { formatDuration, formatHour, isDecember, getDaysUntilDecember } from '../utils/dateUtils';
 import { getLanguageColor } from '../utils/languageUtils';
+import { Language, t, getDayName, getShortDayName, getMonthName, dayNameMap, TranslationKey } from '../i18n/translations';
 
 export class WebviewProvider {
   private static currentPanel: vscode.WebviewPanel | undefined;
@@ -20,6 +21,14 @@ export class WebviewProvider {
   ) {
     this.context = context;
     this.statsService = statsService;
+  }
+
+  /**
+   * 現在の言語設定を取得
+   */
+  private get lang(): Language {
+    const config = vscode.workspace.getConfiguration('codevoyage');
+    return config.get<Language>('language') ?? 'ja';
   }
 
   /**
@@ -98,11 +107,12 @@ export class WebviewProvider {
    * 現在の期間タイプに応じたサマリーを取得
    */
   private getSummaryForCurrentPeriod(): WeeklySummary | MonthlySummary | YearlySummary | null {
+    const lang = this.lang;
     switch (this.currentPeriodType) {
       case 'month':
-        return this.statsService.generateMonthlySummary(this.currentMonthOffset);
+        return this.statsService.generateMonthlySummary(this.currentMonthOffset, lang);
       case 'year':
-        return this.statsService.generateYearlySummary(this.currentYearOffset);
+        return this.statsService.generateYearlySummary(this.currentYearOffset, lang);
       case 'week':
       default:
         return this.statsService.generateWeeklySummary(this.currentWeekOffset);
@@ -181,9 +191,10 @@ export class WebviewProvider {
     const nonce = this.getNonce();
     const canViewYearly = isDecember();
     const daysUntilDecember = getDaysUntilDecember();
+    const lang = this.lang;
 
     return `<!DOCTYPE html>
-<html lang="ja">
+<html lang="${lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -194,7 +205,7 @@ export class WebviewProvider {
         img-src ${webview.cspSource} data:;
         font-src ${webview.cspSource};
     ">
-    <title>振り返りを選択</title>
+    <title>${t('pageTitle', lang)}</title>
     <style>
       ${this.getPeriodSelectionStyles()}
     </style>
@@ -205,7 +216,7 @@ export class WebviewProvider {
 
         <div class="selection-content">
             <div class="hero-section">
-                <p class="hero-eyebrow">あなたのコーディングを振り返る</p>
+                <p class="hero-eyebrow">${t('chooseYourJourney', lang)}</p>
                 <h1 class="hero-title">
                     <span class="title-word">Choose</span>
                     <span class="title-word">Your</span>
@@ -220,14 +231,14 @@ export class WebviewProvider {
                     <div class="card-inner">
                         <div class="card-top">
                             <span class="card-icon">⚡</span>
-                            <span class="card-label">WEEKLY</span>
+                            <span class="card-label">${t('weekly', lang)}</span>
                         </div>
                         <div class="card-period">
                             <span class="period-number">7</span>
-                            <span class="period-unit">days</span>
+                            <span class="period-unit">${t('days', lang)}</span>
                         </div>
-                        <p class="card-desc">1週間を振り返る</p>
-                        <div class="card-action">START</div>
+                        <p class="card-desc">${t('weeklyDesc', lang)}</p>
+                        <div class="card-action">${t('start', lang)}</div>
                     </div>
                 </div>
 
@@ -237,14 +248,14 @@ export class WebviewProvider {
                     <div class="card-inner">
                         <div class="card-top">
                             <span class="card-icon">🌙</span>
-                            <span class="card-label">MONTHLY</span>
+                            <span class="card-label">${t('monthly', lang)}</span>
                         </div>
                         <div class="card-period">
                             <span class="period-number">30</span>
-                            <span class="period-unit">days</span>
+                            <span class="period-unit">${t('days', lang)}</span>
                         </div>
-                        <p class="card-desc">1ヶ月の成長を振り返る</p>
-                        <div class="card-action">START</div>
+                        <p class="card-desc">${t('monthlyDesc', lang)}</p>
+                        <div class="card-action">${t('start', lang)}</div>
                     </div>
                 </div>
 
@@ -255,24 +266,24 @@ export class WebviewProvider {
                         ${canViewYearly ? `
                             <div class="card-top">
                                 <span class="card-icon">🎆</span>
-                                <span class="card-label">YEARLY</span>
+                                <span class="card-label">${t('yearly', lang)}</span>
                             </div>
                             <div class="card-period">
                                 <span class="period-number">365</span>
-                                <span class="period-unit">days</span>
+                                <span class="period-unit">${t('days', lang)}</span>
                             </div>
-                            <p class="card-desc">1年間のコーディング航海記録</p>
-                            <div class="card-action">START</div>
+                            <p class="card-desc">${t('yearlyDesc', lang)}</p>
+                            <div class="card-action">${t('start', lang)}</div>
                         ` : `
                             <div class="card-top">
                                 <span class="card-icon">🔒</span>
-                                <span class="card-label">YEARLY</span>
+                                <span class="card-label">${t('yearly', lang)}</span>
                             </div>
                             <div class="countdown-display">
                                 <span class="countdown-num">${daysUntilDecember}</span>
-                                <span class="countdown-text">days until unlock</span>
+                                <span class="countdown-text">${t('daysUntilUnlock', lang)}</span>
                             </div>
-                            <p class="card-desc muted">12月になったら1年間の振り返りが解放されます</p>
+                            <p class="card-desc muted">${t('yearlyLocked', lang)}</p>
                         `}
                     </div>
                 </div>
@@ -284,8 +295,8 @@ export class WebviewProvider {
             <div class="departure-content">
                 <div class="departure-icon" id="departureIcon">⚡</div>
                 <div class="departure-text">
-                    <span class="departure-label" id="departureLabel">WEEKLY</span>
-                    <span class="departure-subtitle">Journey を準備中...</span>
+                    <span class="departure-label" id="departureLabel">${t('weekly', lang)}</span>
+                    <span class="departure-subtitle">${t('journeyPreparing', lang)}</span>
                 </div>
                 <div class="departure-loader">
                     <div class="loader-track">
@@ -355,18 +366,23 @@ export class WebviewProvider {
             }, 1800);
         }
 
-        // 画面幅に応じてコンテンツをスケーリング
+        // 画面幅・高さに応じてコンテンツをスケーリング
         function adjustScale() {
             const baseWidth = 944; // カードが折り返されない最小幅
+            const baseHeight = 600; // コンテンツの基準高さ
             const content = document.querySelector('.selection-content');
             const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
 
-            if (viewportWidth < baseWidth) {
-                const scale = viewportWidth / baseWidth;
-                content.style.zoom = scale;
-            } else {
-                content.style.zoom = 1;
-            }
+            // 幅と高さの両方からスケールを計算
+            const widthScale = viewportWidth / baseWidth;
+            const availableHeight = viewportHeight - 80;
+            const heightScale = availableHeight / baseHeight;
+
+            // 幅・高さのうち小さい方を採用（1を超えない）
+            const scale = Math.min(1, widthScale, heightScale);
+
+            content.style.zoom = scale;
         }
 
         window.addEventListener('resize', adjustScale);
@@ -381,8 +397,9 @@ export class WebviewProvider {
    */
   private getNoDataContent(webview: vscode.Webview): string {
     const nonce = this.getNonce();
-    const periodLabel = this.currentPeriodType === 'week' ? '週間' :
-                        this.currentPeriodType === 'month' ? '月間' : '年間';
+    const lang = this.lang;
+    const periodLabel = this.currentPeriodType === 'week' ? t('periodWeek', lang) :
+                        this.currentPeriodType === 'month' ? t('periodMonth', lang) : t('periodYear', lang);
     const currentOffset = this.getCurrentOffset(this.currentPeriodType);
     const isNextDisabled = currentOffset >= 0;
     const prevCommand = this.currentPeriodType === 'month' ? 'previousMonth' :
@@ -391,7 +408,7 @@ export class WebviewProvider {
                         this.currentPeriodType === 'year' ? 'nextYear' : 'nextWeek';
 
     return `<!DOCTYPE html>
-<html lang="ja">
+<html lang="${lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -402,7 +419,7 @@ export class WebviewProvider {
         img-src ${webview.cspSource} data:;
         font-src ${webview.cspSource};
     ">
-    <title>航海の始まり</title>
+    <title>${t('noDataTitle', lang)}</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
@@ -690,13 +707,13 @@ export class WebviewProvider {
 <body>
     <!-- 期間選択に戻るボタン -->
     <div class="back-nav">
-      <button class="back-nav-btn" id="backBtn">← 期間選択に戻る</button>
+      <button class="back-nav-btn" id="backBtn">${t('backToPeriodSelection', lang)}</button>
     </div>
 
     <!-- 期間ナビゲーション -->
     <div class="week-nav">
       <button class="week-nav-btn" id="prevPeriod">← ${this.getPrevPeriodLabel(this.currentPeriodType)}</button>
-      <button class="week-nav-btn current-btn" id="currentPeriod">${this.currentPeriodType === 'week' ? '今週' : this.currentPeriodType === 'month' ? '今月' : '今年'}</button>
+      <button class="week-nav-btn current-btn" id="currentPeriod">${this.currentPeriodType === 'week' ? t('thisWeek', lang) : this.currentPeriodType === 'month' ? t('thisMonth', lang) : t('thisYear', lang)}</button>
       <button class="week-nav-btn" id="nextPeriod" ${isNextDisabled ? 'disabled' : ''}>${this.getNextPeriodLabel(this.currentPeriodType)} →</button>
     </div>
 
@@ -724,16 +741,15 @@ export class WebviewProvider {
     <div class="main-content">
       <div class="container">
         <div class="spacecraft">🚀</div>
-        <p class="eyebrow">Voyage Awaits</p>
-        <h1 class="title">航海記録は<br>まだ始まったばかり</h1>
+        <p class="eyebrow">${t('voyageAwaits', lang)}</p>
+        <h1 class="title">${t('voyageJustBegun', lang)}</h1>
         <p class="message">
-          コードを書くたびに、あなたの航海記録が刻まれます。<br>
-          <strong>VS Code</strong>で開発を続けて、データを蓄積しましょう。
+          ${t('voyageMessage', lang)}
         </p>
 
         <div class="hint">
-          <p class="hint-label">Demo Mode</p>
-          <p class="hint-text">コマンドパレットから <code>Show Demo Review</code> でサンプルを確認できます</p>
+          <p class="hint-label">${t('demoMode', lang)}</p>
+          <p class="hint-text">${t('demoHint', lang)}</p>
         </div>
       </div>
     </div>
@@ -1209,6 +1225,7 @@ export class WebviewProvider {
     summary: WeeklySummary | MonthlySummary | YearlySummary
   ): string {
     const nonce = this.getNonce();
+    const lang = this.lang;
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -1234,6 +1251,14 @@ export class WebviewProvider {
     </div>
     <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
+        const i18n = {
+          downloadImage: '${t('downloadImage', lang)}',
+          copyImage: '${t('copyImage', lang)}',
+          downloadComplete: '${t('downloadComplete', lang)}',
+          copying: '${t('copying', lang)}',
+          copyComplete: '${t('copyComplete', lang)}',
+          copyFailed: '${t('copyFailed', lang)}'
+        };
         ${this.getScripts()}
     </script>
 </body>
@@ -5689,21 +5714,21 @@ export class WebviewProvider {
         background: transparent;
       }
 
-      /* Heatmap intensity levels - darker = more activity */
+      /* Heatmap intensity levels - 緑系：明るいほど活動量が多い */
       .period-month .calendar-day.level-0 { background: #3d4451; }
-      .period-month .calendar-day.level-1 { background: #4ade80; }
-      .period-month .calendar-day.level-2 { background: #39d353; }
-      .period-month .calendar-day.level-3 { background: #26a641; }
-      .period-month .calendar-day.level-4 { background: #006d32; }
-      .period-month .calendar-day.level-5 { background: #0e4429; }
+      .period-month .calendar-day.level-1 { background: #033A16; }
+      .period-month .calendar-day.level-2 { background: #196C2E; }
+      .period-month .calendar-day.level-3 { background: #2EA043; }
+      .period-month .calendar-day.level-4 { background: #56D364; }
+      .period-month .calendar-day.level-5 { background: #7EE787; }
 
-      /* Yearly uses same color scheme - darker = more activity */
+      /* Yearly uses same color scheme - 緑系：明るいほど活動量が多い */
       .period-year .calendar-day.level-0 { background: #3d4451; }
-      .period-year .calendar-day.level-1 { background: #4ade80; }
-      .period-year .calendar-day.level-2 { background: #39d353; }
-      .period-year .calendar-day.level-3 { background: #26a641; }
-      .period-year .calendar-day.level-4 { background: #006d32; }
-      .period-year .calendar-day.level-5 { background: #0e4429; }
+      .period-year .calendar-day.level-1 { background: #033A16; }
+      .period-year .calendar-day.level-2 { background: #196C2E; }
+      .period-year .calendar-day.level-3 { background: #2EA043; }
+      .period-year .calendar-day.level-4 { background: #56D364; }
+      .period-year .calendar-day.level-5 { background: #7EE787; }
 
       .calendar-day.today {
         box-shadow: 0 0 0 2px var(--accent-primary);
@@ -5821,6 +5846,7 @@ export class WebviewProvider {
   private renderSlides(summary: WeeklySummary | MonthlySummary | YearlySummary): string {
     const isDemo = this.statsService.isUsingMockData();
     const demoBadge = isDemo ? '<div class="demo-badge">DEMO DATA</div>' : '';
+    const lang = this.lang;
 
     // 期間タイプに応じたタイトル
     const periodType: import('../types').ReviewPeriodType = ('periodType' in summary && summary.periodType) ? summary.periodType : 'week';
@@ -5853,7 +5879,7 @@ export class WebviewProvider {
 
     return `
       ${demoBadge}
-      <button class="back-button" id="backToPeriodBtn">← 期間選択に戻る</button>
+      <button class="back-button" id="backToPeriodBtn">${t('backToPeriodSelection', lang)}</button>
       <div class="slides-container">
         <!-- Slide 1: タイトル -->
         <div class="slide active" data-slide="1">
@@ -5875,7 +5901,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in delay-1">⏱️</div>
-              <h2 class="slide-title animate-fade-in delay-2">${periodType === 'year' ? '今年' : periodType === 'month' ? '今月' : '今週'}の総コーディング時間</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${periodType === 'year' ? t('totalCodingTimeThisYear', lang) : periodType === 'month' ? t('totalCodingTimeThisMonth', lang) : t('totalCodingTimeThisWeek', lang)}</h2>
             </div>
             <div class="big-number animate-bounce-in delay-3" data-scramble="${formatDuration(summary.totalCodingTimeMs)}">
               ${formatDuration(summary.totalCodingTimeMs)}
@@ -5910,7 +5936,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in delay-1">🚀</div>
-              <h2 class="slide-title animate-fade-in delay-2">プロジェクトランキング</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${t('projectRanking', lang)}</h2>
             </div>
             <div class="project-cards">
               ${summary.topProjects.map((p, i, arr) => {
@@ -5925,7 +5951,7 @@ export class WebviewProvider {
                   </div>
                 </div>
               `}).join('')}
-              ${summary.topProjects.length === 0 ? '<p class="subtitle animate-fade-in delay-3">データがありません</p>' : ''}
+              ${summary.topProjects.length === 0 ? `<p class="subtitle animate-fade-in delay-3">${t('noData', lang)}</p>` : ''}
             </div>
             <p class="slide-message animate-fade-in delay-9">
               ${this.getProjectMessage(summary.topProjects.length, periodType)}
@@ -5938,7 +5964,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in delay-1">📄</div>
-              <h2 class="slide-title animate-fade-in delay-2">よく開いたファイル</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${t('frequentFiles', lang)}</h2>
             </div>
             <div class="file-list">
               ${summary.topFiles.map((f, i, arr) => {
@@ -5953,7 +5979,7 @@ export class WebviewProvider {
                   <span class="file-count">${f.accessCount} opens</span>
                 </div>
               `}).join('')}
-              ${summary.topFiles.length === 0 ? '<p class="subtitle animate-fade-in delay-3">データがありません</p>' : ''}
+              ${summary.topFiles.length === 0 ? `<p class="subtitle animate-fade-in delay-3">${t('noData', lang)}</p>` : ''}
             </div>
             <p class="slide-message animate-fade-in delay-9">
               ${this.getFilesMessage(summary.topFiles.length)}
@@ -5966,7 +5992,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in delay-1">💬</div>
-              <h2 class="slide-title animate-fade-in delay-2">使用した言語</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${t('languagesUsed', lang)}</h2>
             </div>
             <div class="language-bars">
               ${summary.topLanguages.map((l, i, arr) => {
@@ -5985,7 +6011,7 @@ export class WebviewProvider {
                   <span class="language-time">${formatDuration(l.totalTimeMs)}</span>
                 </div>
               `}).join('')}
-              ${summary.topLanguages.length === 0 ? '<p class="subtitle animate-fade-in delay-3">データがありません</p>' : ''}
+              ${summary.topLanguages.length === 0 ? `<p class="subtitle animate-fade-in delay-3">${t('noData', lang)}</p>` : ''}
             </div>
             <p class="slide-message animate-fade-in delay-9">
               ${this.getLanguageMessage(summary.topLanguages, periodType)}
@@ -5999,7 +6025,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in delay-1">⏰</div>
-              <h2 class="slide-title animate-fade-in delay-2">コーディングスタイル</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${t('codingStyle', lang)}</h2>
             </div>
             <div class="pattern-grid pattern-grid-2 animate-fade-in delay-3">
               <div class="pattern-item">
@@ -6027,16 +6053,16 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji night-owl-emoji animate-pop-in animate-float delay-1">🦉</div>
-              <h2 class="slide-title animate-fade-in delay-2">夜ふかしコーディング</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${t('nightOwlCoding', lang)}</h2>
             </div>
             <div class="night-owl-stats animate-fade-in delay-3">
               <div class="night-owl-main">
                 <span class="night-owl-percentage animate-night-glow" data-scramble="${Math.round(summary.nightOwlPercentage)}%">${Math.round(summary.nightOwlPercentage)}%</span>
-                <span class="night-owl-label">夜ふかし率</span>
+                <span class="night-owl-label">${t('nightOwlRate', lang)}</span>
               </div>
               <div class="night-owl-time">
                 <span class="night-owl-time-value">${formatDuration(summary.nightOwlTimeMs)}</span>
-                <span class="night-owl-time-label">22:00〜4:00のコーディング時間</span>
+                <span class="night-owl-time-label">${t('nightOwlTimeRange', lang)}</span>
               </div>
             </div>
             <p class="night-owl-message animate-fade-in delay-5">
@@ -6050,7 +6076,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in animate-celebrate delay-1">🏆</div>
-              <h2 class="slide-title animate-fade-in delay-2">あなたの記録</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${t('yourRecords', lang)}</h2>
             </div>
             <div class="pattern-grid animate-fade-in delay-3">
               ${this.renderRecordsContent(periodType, summary)}
@@ -6067,7 +6093,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in delay-1">📅</div>
-              <h2 class="slide-title animate-fade-in delay-2">${periodType === 'year' ? '1年間のコーディング活動' : 'この月のコーディング活動'}</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${periodType === 'year' ? t('calendarHeatmapYear', lang) : t('calendarHeatmapMonth', lang)}</h2>
             </div>
             ${periodType === 'year'
               ? this.renderYearlyCalendarHeatmap(summary as YearlySummary)
@@ -6116,9 +6142,9 @@ export class WebviewProvider {
             <div class="intro-reveal-container">
               <div class="year-crown">👑</div>
               <div class="intro-title-wrapper">
-                <span class="intro-line line-1">あなたの</span>
-                <span class="intro-line line-2">コーディングスタイルを</span>
-                <span class="intro-line line-3">見てみましょう</span>
+                <span class="intro-line line-1">${t('codingStylesIntroLine1', lang)}</span>
+                <span class="intro-line line-2">${t('codingStylesIntroLine2', lang)}</span>
+                <span class="intro-line line-3">${t('codingStylesIntroLine3', lang)}</span>
               </div>
               <div class="intro-pulse-ring"></div>
               <div class="intro-pulse-ring ring-2"></div>
@@ -6163,8 +6189,8 @@ export class WebviewProvider {
 
             <!-- タイトルエリア -->
             <div class="style-title-area">
-              ${style.isYearlyExclusive ? '<div class="style-badge yearly-exclusive-badge">✨ 年間限定</div>' : ''}
-              ${style.isMaster ? '<div class="style-badge master-badge">🏆 マスター</div>' : ''}
+              ${style.isYearlyExclusive ? `<div class="style-badge yearly-exclusive-badge">${t('yearlyExclusiveBadge', lang)}</div>` : ''}
+              ${style.isMaster ? `<div class="style-badge master-badge">${t('masterBadge', lang)}</div>` : ''}
               <h2 class="style-title">${style.title}</h2>
               <div class="title-underline"></div>
             </div>
@@ -6200,7 +6226,7 @@ export class WebviewProvider {
           <div class="slide-content">
             <div class="slide-header">
               <div class="slide-emoji animate-pop-in delay-1">✨</div>
-              <h2 class="slide-title animate-fade-in delay-2">あなたのコーディングスタイル</h2>
+              <h2 class="slide-title animate-fade-in delay-2">${t('yourCodingStyle', lang)}</h2>
             </div>
             <div class="monthly-styles-grid">
               ${codingStyles.slice(0, 4).map((style, index) => `
@@ -6215,7 +6241,7 @@ export class WebviewProvider {
               `).join('')}
             </div>
             <p class="slide-message animate-fade-in delay-6">
-              どんなスタイルも、あなたの努力の証です。
+              ${t('codingStylesNote', lang)}
             </p>
           </div>
         </div>
@@ -6331,15 +6357,15 @@ export class WebviewProvider {
             <div class="summary-actions animate-fade-in delay-3">
               <button class="summary-btn" id="downloadImage">
                 <span class="btn-icon">📥</span>
-                画像をダウンロード
+                ${t('downloadImage', lang)}
               </button>
               <button class="summary-btn" id="copyImage">
                 <span class="btn-icon">📋</span>
-                画像をコピー
+                ${t('copyImage', lang)}
               </button>
             </div>
             <div class="back-to-selection-wrapper animate-fade-in delay-4">
-              <button class="back-to-selection-btn" id="backToSelection">別の期間を振り返る</button>
+              <button class="back-to-selection-btn" id="backToSelection">${t('reviewAnotherPeriod', lang)}</button>
             </div>
           </div>
         </div>
@@ -6349,8 +6375,8 @@ export class WebviewProvider {
       <div class="pause-indicator" id="pauseIndicator">
         <div class="pause-indicator-icon">⏸️</div>
         <div>
-          <div class="pause-indicator-text">一時停止中</div>
-          <div class="pause-indicator-hint">スペースキーで再開</div>
+          <div class="pause-indicator-text">${t('paused', lang)}</div>
+          <div class="pause-indicator-hint">${t('pressSpaceToResume', lang)}</div>
         </div>
       </div>
 
@@ -6364,13 +6390,13 @@ export class WebviewProvider {
             </div>
           `).join('')}
         </div>
-        <div class="pause-hint">スペースキーで一時停止</div>
+        <div class="pause-hint">${t('pressSpaceToPause', lang)}</div>
       </div>
 
       <!-- Period navigation -->
       <div class="week-nav">
         <button class="week-nav-btn" id="prevPeriod">← ${this.getPrevPeriodLabel(periodType)}</button>
-        <button class="week-nav-btn current-btn" id="currentPeriod">${periodType === 'week' ? '今週' : periodType === 'month' ? '今月' : '今年'}</button>
+        <button class="week-nav-btn current-btn" id="currentPeriod">${periodType === 'week' ? t('thisWeek', lang) : periodType === 'month' ? t('thisMonth', lang) : t('thisYear', lang)}</button>
         <button class="week-nav-btn" id="nextPeriod" ${this.getCurrentOffset(periodType) >= 0 ? 'disabled' : ''}>${this.getNextPeriodLabel(periodType)} →</button>
       </div>
     `;
@@ -6380,14 +6406,15 @@ export class WebviewProvider {
    * 夜ふかしメッセージを取得
    */
   private getNightOwlMessage(percentage: number): string {
+    const lang = this.lang;
     if (percentage >= 40) {
-      return '🦉 完全に夜型ですね！健康に気をつけて！';
+      return t('nightOwl100', lang);
     } else if (percentage >= 25) {
-      return '🌙 夜更かし多めですね。たまには早めに休みましょう';
+      return t('nightOwl50', lang);
     } else if (percentage >= 10) {
-      return '⭐ 時々夜更かしする程度。バランス良いですね';
+      return t('nightOwl20', lang);
     } else {
-      return '☀️ 健康的な時間帯にコーディングしていますね！';
+      return t('nightOwl0', lang);
     }
   }
 
@@ -6395,13 +6422,14 @@ export class WebviewProvider {
    * ブレイクダウンのタイトルを取得
    */
   private getBreakdownTitle(periodType: import('../types').ReviewPeriodType): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year':
-        return '月ごとの推移';
+        return t('monthlyBreakdown', lang);
       case 'month':
-        return '週ごとの推移';
+        return t('weeklyBreakdown', lang);
       default:
-        return '日ごとの推移';
+        return t('dailyBreakdown', lang);
     }
   }
 
@@ -6423,24 +6451,28 @@ export class WebviewProvider {
    * 期間に応じたブレイクダウンメッセージを取得
    */
   private getBreakdownMessage(periodType: import('../types').ReviewPeriodType, summary: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year': {
         const yearlySummary = summary as YearlySummary;
         const bestMonth = yearlySummary.bestMonth;
         if (bestMonth) {
-          return `🏆 ${bestMonth.monthName}が最も頑張った月！${bestMonth.activeDays}日間アクティブでした`;
+          return t('bestMonthMessage', lang, { month: bestMonth.monthName, days: bestMonth.activeDays });
         }
-        return '✨ 1年間のコーディングジャーニーを振り返ろう';
+        return t('yearlyJourneyMessage', lang);
       }
       case 'month': {
         const monthlySummary = summary as MonthlySummary;
         const bestWeek = monthlySummary.bestWeek;
-        if (bestWeek && monthlySummary.weeklyBreakdown) {
-          // 月内の週番号を計算（配列のインデックス+1）
-          const weekInMonth = monthlySummary.weeklyBreakdown.findIndex(w => w.weekNumber === bestWeek.weekNumber) + 1;
-          return `🏆 ${weekInMonth}週目が最も頑張った週でした！`;
+        if (bestWeek) {
+          // 月初からの週番号を計算
+          const monthStart = new Date(monthlySummary.weekStartDate);
+          const weekStart = new Date(bestWeek.weekStartDate);
+          const daysDiff = Math.floor((weekStart.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+          const weekInMonth = Math.floor(daysDiff / 7) + 1;
+          return t('bestWeekMessage', lang, { week: weekInMonth });
         }
-        return '✨ 今月のコーディングを振り返ろう';
+        return t('monthlyJourneyMessage', lang);
       }
       default:
         return this.getDailyBreakdownMessage(summary.dailyBreakdown, summary.peakDay);
@@ -6451,28 +6483,21 @@ export class WebviewProvider {
    * 日別コーディング時間のメッセージを取得
    */
   private getDailyBreakdownMessage(dailyBreakdown: import('../types').DailyStats[], peakDay: string): string {
+    const lang = this.lang;
     const activeDays = dailyBreakdown.filter(d => d.totalTimeMs > 0).length;
-    const dayNames: Record<string, string> = {
-      'Sunday': '日曜日',
-      'Monday': '月曜日',
-      'Tuesday': '火曜日',
-      'Wednesday': '水曜日',
-      'Thursday': '木曜日',
-      'Friday': '金曜日',
-      'Saturday': '土曜日'
-    };
-    const peakDayJa = dayNames[peakDay] || peakDay;
+    const peakDayKey = dayNameMap[peakDay];
+    const peakDayLocalized = peakDayKey ? t(peakDayKey, lang) : peakDay;
 
     if (activeDays === 7) {
-      return `🔥 毎日コーディング！${peakDayJa}が最も頑張った日でした`;
+      return t('dailyAllDays', lang, { day: peakDayLocalized });
     } else if (activeDays >= 5) {
-      return `💪 ${activeDays}日間コーディング！${peakDayJa}が最も集中できた日`;
+      return t('dailyMostDays', lang, { days: activeDays, day: peakDayLocalized });
     } else if (activeDays >= 3) {
-      return `✨ ${peakDayJa}を中心に${activeDays}日間コードを書きました`;
+      return t('dailyHalfDays', lang, { days: activeDays, day: peakDayLocalized });
     } else if (activeDays >= 1) {
-      return `🌱 ${activeDays}日間のコーディング。少しずつでも継続が大切！`;
+      return t('dailyFewDays', lang, { days: activeDays });
     } else {
-      return '💡 来週はコーディングの時間を作ってみましょう！';
+      return t('dailyNoDays', lang);
     }
   }
 
@@ -6480,15 +6505,16 @@ export class WebviewProvider {
    * カレンダーヒートマップのメッセージを取得
    */
   private getCalendarHeatmapMessage(periodType: import('../types').ReviewPeriodType, summary: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year': {
         const yearlySummary = summary as YearlySummary;
         const activeDays = yearlySummary.totalDaysActive || 0;
         const bestMonth = yearlySummary.bestMonth;
         if (bestMonth && activeDays > 0) {
-          return `🗓️ ${activeDays}日間コーディング！${bestMonth.monthName}が最も活発な月でした`;
+          return t('calendarYearly', lang, { days: activeDays, month: bestMonth.monthName });
         }
-        return `🗓️ ${activeDays}日間、コードと向き合いました`;
+        return t('calendarYearlyNoMonth', lang, { days: activeDays });
       }
       case 'month': {
         const monthlySummary = summary as MonthlySummary;
@@ -6497,12 +6523,12 @@ export class WebviewProvider {
         if (bestDay && activeDays > 0) {
           const bestDate = new Date(bestDay.date);
           const day = bestDate.getDate();
-          return `📅 ${activeDays}日間コーディング！${day}日が最も集中した日`;
+          return t('calendarMonthly', lang, { days: activeDays, day: day });
         }
-        return `📅 ${activeDays}日間、コードを書きました`;
+        return t('calendarMonthlyNoDay', lang, { days: activeDays });
       }
       default:
-        return '📅 コーディング活動の記録';
+        return t('calendarDefault', lang);
     }
   }
 
@@ -6510,17 +6536,18 @@ export class WebviewProvider {
    * 期間に応じた比較表示をレンダリング
    */
   private renderComparisonByPeriod(periodType: import('../types').ReviewPeriodType, summary: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year': {
         const yearlySummary = summary as YearlySummary;
-        return this.renderComparison(yearlySummary.comparisonToPreviousYear || 0, summary.totalCodingTimeMs, '昨年');
+        return this.renderComparison(yearlySummary.comparisonToPreviousYear || 0, summary.totalCodingTimeMs, t('comparedToLastYear', lang));
       }
       case 'month': {
         const monthlySummary = summary as MonthlySummary;
-        return this.renderComparison(monthlySummary.comparisonToPreviousMonth || 0, summary.totalCodingTimeMs, '先月');
+        return this.renderComparison(monthlySummary.comparisonToPreviousMonth || 0, summary.totalCodingTimeMs, t('comparedToLastMonth', lang));
       }
       default:
-        return this.renderComparison(summary.comparisonToPreviousWeek, summary.totalCodingTimeMs, '先週');
+        return this.renderComparison(summary.comparisonToPreviousWeek, summary.totalCodingTimeMs, t('comparedToLastWeek', lang));
     }
   }
 
@@ -6546,70 +6573,71 @@ export class WebviewProvider {
    * 総時間メッセージを取得
    */
   private getTotalTimeMessage(totalMs: number, comparisonPercentage: number = 0, periodType: import('../types').ReviewPeriodType = 'week'): string {
+    const lang = this.lang;
     const hours = totalMs / (1000 * 60 * 60);
     const minutes = totalMs / (1000 * 60);
     const isIncreased = comparisonPercentage > 0;
 
     // 期間ラベル
-    const prevLabel = periodType === 'year' ? '昨年' : periodType === 'month' ? '先月' : '先週';
-    const periodLabel = periodType === 'year' ? '今年' : periodType === 'month' ? '今月' : '今週';
+    const prevLabel = periodType === 'year' ? t('comparedToLastYear', lang) : periodType === 'month' ? t('comparedToLastMonth', lang) : t('comparedToLastWeek', lang);
+    const periodLabel = periodType === 'year' ? t('thisYear', lang) : periodType === 'month' ? t('thisMonth', lang) : t('thisWeek', lang);
 
     // 前期間比で増加している場合は特別なメッセージ
     if (isIncreased && comparisonPercentage >= 50) {
-      return `🚀 ${prevLabel}から大幅アップ！成長が止まらない！`;
+      return t('totalTimeIncrease50', lang, { prev: prevLabel });
     } else if (isIncreased && comparisonPercentage >= 20) {
-      return `📈 ${prevLabel}よりしっかり時間を取れましたね！素晴らしい！`;
+      return t('totalTimeIncrease20', lang, { prev: prevLabel });
     } else if (isIncreased) {
-      return `⬆️ ${prevLabel}より増えてます！その調子！`;
+      return t('totalTimeIncrease0', lang, { prev: prevLabel });
     }
 
     // 年間用メッセージ
     if (periodType === 'year') {
       if (hours >= 1500) {
-        return '🏆 年間1500時間超え！プロフェッショナルの証！';
+        return t('yearlyTotal1500', lang);
       } else if (hours >= 1000) {
-        return '🔥 年間1000時間達成！情熱的な1年でした！';
+        return t('yearlyTotal1000', lang);
       } else if (hours >= 500) {
-        return '💪 500時間以上！着実にスキルアップした1年！';
+        return t('yearlyTotal500', lang);
       } else if (hours >= 200) {
-        return '✨ コツコツ積み重ねた1年。来年も頑張ろう！';
+        return t('yearlyTotal100', lang);
       } else {
-        return '🌱 来年はもっとコードを書く時間を作ろう！';
+        return t('yearlyTotal0', lang);
       }
     }
 
     // 月間用メッセージ
     if (periodType === 'month') {
       if (hours >= 160) {
-        return '🔥 フルタイム以上！情熱がすごい月でした！';
+        return t('monthlyTotal160', lang);
       } else if (hours >= 100) {
-        return '💪 100時間超え！充実した月でしたね！';
+        return t('monthlyTotal100', lang);
       } else if (hours >= 50) {
-        return '👍 安定したペースで開発できました！';
+        return t('monthlyTotal40', lang);
       } else if (hours >= 20) {
-        return '✨ 着実に進歩しています。この調子で！';
+        return t('monthlyTotal20', lang);
       } else {
-        return `🌟 コツコツ積み重ねが大事。${periodLabel}もお疲れさま！`;
+        return t('monthlyTotal0', lang, { period: periodLabel });
       }
     }
 
     // 週間用メッセージ（デフォルト）
     if (hours >= 40) {
-      return '🔥 フルタイム以上！情熱がすごい！';
+      return t('weeklyTotal40', lang);
     } else if (hours >= 30) {
-      return '💪 しっかりコードと向き合った一週間でしたね';
+      return t('weeklyTotal20', lang);
     } else if (hours >= 20) {
-      return '👍 安定したペースで開発を進められています';
+      return t('weeklyTotal10', lang);
     } else if (hours >= 10) {
-      return '✨ 着実に進歩しています。この調子で！';
+      return t('weeklyTotal5', lang);
     } else if (hours >= 5) {
-      return `🌟 コツコツ積み重ねが大事。${periodLabel}もお疲れさま！`;
+      return t('weeklyTotal1', lang, { period: periodLabel });
     } else if (hours >= 1) {
-      return '👏 忙しい中でも時間を作れたこと、それ自体がすごい！';
+      return t('weeklyTotal0_5', lang);
     } else if (minutes >= 10) {
-      return '🎯 少しでもコードに触れた、その一歩が大切です！';
+      return t('weeklyTotal0_1', lang);
     } else {
-      return '💡 また来週、一緒にコードを書きましょう！';
+      return t('weeklyTotal0', lang);
     }
   }
 
@@ -6617,15 +6645,16 @@ export class WebviewProvider {
    * プロジェクトメッセージを取得
    */
   private getProjectMessage(projectCount: number, periodType: import('../types').ReviewPeriodType = 'week'): string {
-    const periodLabel = periodType === 'year' ? '1年' : periodType === 'month' ? '1ヶ月' : '1週間';
+    const lang = this.lang;
+    const periodLabel = periodType === 'year' ? t('periodYear', lang) : periodType === 'month' ? t('periodMonth', lang) : t('periodWeek', lang);
     if (projectCount >= 5) {
-      return '🎯 マルチタスクの達人！複数プロジェクトを並行してますね';
+      return t('projectMulti5', lang);
     } else if (projectCount >= 3) {
-      return '📚 バランス良く複数のプロジェクトに取り組んでいます';
+      return t('projectMulti3', lang);
     } else if (projectCount >= 2) {
-      return '🎪 複数プロジェクトを上手く切り替えていますね';
+      return t('projectMulti2', lang);
     } else {
-      return `🎯 1つのプロジェクトに集中できた${periodLabel}でした`;
+      return t('projectSingle', lang, { period: periodLabel });
     }
   }
 
@@ -6633,15 +6662,16 @@ export class WebviewProvider {
    * 言語メッセージを取得
    */
   private getLanguageMessage(languages: import('../types').LanguageStat[], periodType: import('../types').ReviewPeriodType = 'week'): string {
+    const lang = this.lang;
     if (languages.length === 0) return '';
     const topLang = languages[0].displayName;
-    const periodLabel = periodType === 'year' ? '1年' : periodType === 'month' ? '1ヶ月' : '今週';
+    const periodLabel = periodType === 'year' ? t('periodYear', lang) : periodType === 'month' ? t('periodMonth', lang) : t('thisWeek', lang);
     if (languages.length >= 5) {
-      return '🌍 ポリグロットプログラマー！多言語を操っていますね';
+      return t('langMulti5', lang);
     } else if (languages.length >= 3) {
-      return `💡 ${topLang}をメインに、幅広く活躍中`;
+      return t('langMulti2', lang, { lang: topLang });
     } else {
-      return `🎯 ${topLang}に集中した${periodLabel}でしたね`;
+      return t('langSingle', lang, { lang: topLang, period: periodLabel });
     }
   }
 
@@ -6649,33 +6679,38 @@ export class WebviewProvider {
    * パターンメッセージを取得（期間別）
    */
   private getPatternMessage(peakHour: number, periodType: import('../types').ReviewPeriodType = 'week', summary?: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     // 時間帯のメッセージ
     let timeMessage = '';
     if (peakHour >= 5 && peakHour < 9) {
-      timeMessage = '🌅 朝型プログラマー！静かな時間に集中できていますね';
+      timeMessage = t('patternMorning', lang);
     } else if (peakHour >= 9 && peakHour < 12) {
-      timeMessage = '☀️ 午前中が最も生産的な時間帯のようです';
+      timeMessage = t('patternLateMorning', lang);
     } else if (peakHour >= 12 && peakHour < 14) {
-      timeMessage = '🍽️ ランチタイムもコーディング！熱心ですね';
+      timeMessage = t('patternLunch', lang);
     } else if (peakHour >= 14 && peakHour < 18) {
-      timeMessage = '🏢 午後の集中タイムを上手く活用していますね';
+      timeMessage = t('patternAfternoon', lang);
     } else if (peakHour >= 18 && peakHour < 22) {
-      timeMessage = '🌆 夕方から夜にかけてエンジン全開ですね';
+      timeMessage = t('patternEvening', lang);
     } else {
-      timeMessage = '🌙 深夜の静けさの中で集中していますね';
+      timeMessage = t('patternNight', lang);
     }
 
     // 期間別の追加メッセージ
     if (periodType === 'year' && summary) {
       const yearlySummary = summary as YearlySummary;
       if (yearlySummary.bestMonth) {
-        return `📅 ${yearlySummary.bestMonth.monthName}が最も熱中した月でした。${timeMessage}`;
+        return t('patternBestMonth', lang, { month: yearlySummary.bestMonth.monthName, time: timeMessage });
       }
     } else if (periodType === 'month' && summary) {
       const monthlySummary = summary as MonthlySummary;
-      if (monthlySummary.bestWeek && monthlySummary.weeklyBreakdown) {
-        const weekInMonth = monthlySummary.weeklyBreakdown.findIndex(w => w.weekNumber === monthlySummary.bestWeek!.weekNumber) + 1;
-        return `📅 ${weekInMonth}週目が最も集中した週でした。${timeMessage}`;
+      if (monthlySummary.bestWeek) {
+        // 月初からの週番号を計算
+        const monthStart = new Date(monthlySummary.weekStartDate);
+        const weekStart = new Date(monthlySummary.bestWeek.weekStartDate);
+        const daysDiff = Math.floor((weekStart.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+        const weekInMonth = Math.floor(daysDiff / 7) + 1;
+        return t('patternBestWeek', lang, { week: weekInMonth, time: timeMessage });
       }
     }
 
@@ -6686,6 +6721,7 @@ export class WebviewProvider {
    * 分布表示の値を取得（期間に応じて変更）
    */
   private getDistributionValue(periodType: import('../types').ReviewPeriodType, summary: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year': {
         const yearlySummary = summary as YearlySummary;
@@ -6708,7 +6744,7 @@ export class WebviewProvider {
               peakIndex = i;
             }
           });
-          return `${peakIndex + 1}週目`;
+          return t('weekN', lang, { n: peakIndex + 1 });
         }
         return '-';
       }
@@ -6721,13 +6757,14 @@ export class WebviewProvider {
    * 分布表示の説明を取得（期間に応じて変更）
    */
   private getDistributionDesc(periodType: import('../types').ReviewPeriodType): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year':
-        return '最もコードを書いた月';
+        return t('mostActiveMonth', lang);
       case 'month':
-        return '最もコードを書いた週';
+        return t('mostActiveWeek', lang);
       default:
-        return '最もコードを書いた時間帯';
+        return t('mostActiveHour', lang);
     }
   }
 
@@ -6753,8 +6790,9 @@ export class WebviewProvider {
    * 月別分布チャートをレンダリング（年間用） - ヒートマップスタイル
    */
   private renderMonthlyDistributionChart(monthlyBreakdown: import('../types').MonthBreakdown[]): string {
+    const lang = this.lang;
     if (monthlyBreakdown.length === 0) {
-      return '<p class="subtitle">データがありません</p>';
+      return `<p class="subtitle">${t('noData', lang)}</p>`;
     }
 
     const maxTime = Math.max(...monthlyBreakdown.map(m => m.totalTimeMs), 1);
@@ -6787,8 +6825,9 @@ export class WebviewProvider {
    * 週別分布チャートをレンダリング（月間用） - ヒートマップスタイル
    */
   private renderWeeklyDistributionChart(weeklyBreakdown: import('../types').WeekBreakdown[]): string {
+    const lang = this.lang;
     if (weeklyBreakdown.length === 0) {
-      return '<p class="subtitle">データがありません</p>';
+      return `<p class="subtitle">${t('noData', lang)}</p>`;
     }
 
     const maxTime = Math.max(...weeklyBreakdown.map(w => w.totalTimeMs), 1);
@@ -6799,11 +6838,11 @@ export class WebviewProvider {
       const level = time === 0 ? 0 : Math.ceil((time / maxTime) * 5);
       const delayClass = `delay-${i + 1}`;
       const weekInMonth = i + 1;
-      return `<div class="heatmap-cell level-${level} animate-scale-in ${delayClass}" title="${weekInMonth}週目: ${formatDuration(time)}"></div>`;
+      return `<div class="heatmap-cell level-${level} animate-scale-in ${delayClass}" title="${t('weekN', lang, { n: weekInMonth })}: ${formatDuration(time)}"></div>`;
     }).join('');
 
     // ラベルを生成（週数に応じて）
-    const labels = weeklyBreakdown.map((_, i) => `${i + 1}週`);
+    const labels = weeklyBreakdown.map((_, i) => t('weekNShort', lang, { n: i + 1 }));
 
     return `
       <div class="heatmap weekly-heatmap" style="--cell-count: ${weekCount}">
@@ -6819,6 +6858,7 @@ export class WebviewProvider {
    * 期間別の「最もアクティブな期間単位」の値を取得
    */
   private getMostActivePeriodValue(periodType: import('../types').ReviewPeriodType, summary: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year': {
         const yearlySummary = summary as YearlySummary;
@@ -6829,23 +6869,19 @@ export class WebviewProvider {
       }
       case 'month': {
         const monthlySummary = summary as MonthlySummary;
-        if (monthlySummary.bestWeek && monthlySummary.weeklyBreakdown) {
-          const weekInMonth = monthlySummary.weeklyBreakdown.findIndex(w => w.weekNumber === monthlySummary.bestWeek!.weekNumber) + 1;
-          return `${weekInMonth}週目`;
+        if (monthlySummary.bestWeek) {
+          // 月初からの週番号を計算
+          const monthStart = new Date(monthlySummary.weekStartDate);
+          const weekStart = new Date(monthlySummary.bestWeek.weekStartDate);
+          const daysDiff = Math.floor((weekStart.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+          const weekInMonth = Math.floor(daysDiff / 7) + 1;
+          return t('weekN', lang, { n: weekInMonth });
         }
         return '-';
       }
       default: {
-        const dayNames: Record<string, string> = {
-          'Sunday': '日曜日',
-          'Monday': '月曜日',
-          'Tuesday': '火曜日',
-          'Wednesday': '水曜日',
-          'Thursday': '木曜日',
-          'Friday': '金曜日',
-          'Saturday': '土曜日'
-        };
-        return dayNames[summary.peakDay] || summary.peakDay || '-';
+        const peakDayKey = dayNameMap[summary.peakDay];
+        return peakDayKey ? t(peakDayKey, lang) : summary.peakDay || '-';
       }
     }
   }
@@ -6854,13 +6890,14 @@ export class WebviewProvider {
    * 期間別の「最もアクティブな期間単位」の説明を取得
    */
   private getMostActivePeriodDesc(periodType: import('../types').ReviewPeriodType): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'year':
-        return '最もコードを書いた月';
+        return t('mostActiveMonth', lang);
       case 'month':
-        return '最もコードを書いた週';
+        return t('mostActiveWeek', lang);
       default:
-        return '最もコードを書いた曜日';
+        return t('mostActiveDay', lang);
     }
   }
 
@@ -6892,19 +6929,20 @@ export class WebviewProvider {
    * 記録コンテンツをレンダリング（期間別）
    */
   private renderRecordsContent(periodType: import('../types').ReviewPeriodType, summary: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     if (periodType === 'year') {
       const yearlySummary = summary as YearlySummary;
       return `
         <div class="pattern-item">
-          <span class="pattern-label">コードを書いた日数</span>
+          <span class="pattern-label">${t('daysActive', lang)}</span>
           <span class="pattern-value" data-scramble="${yearlySummary.totalDaysActive} days">${yearlySummary.totalDaysActive} days</span>
         </div>
         <div class="pattern-item">
-          <span class="pattern-label">連続でコードを書いた最大日数</span>
+          <span class="pattern-label">${t('maxStreak', lang)}</span>
           <span class="pattern-value" data-scramble="${yearlySummary.longestStreakInYear} days">${yearlySummary.longestStreakInYear} days</span>
         </div>
         <div class="pattern-item">
-          <span class="pattern-label">推定コード行数</span>
+          <span class="pattern-label">${t('estimatedLines', lang)}</span>
           <span class="pattern-value" data-scramble="${this.formatNumber(yearlySummary.totalLinesEstimate)}">${this.formatNumber(yearlySummary.totalLinesEstimate)}</span>
         </div>
       `;
@@ -6912,15 +6950,15 @@ export class WebviewProvider {
       const monthlySummary = summary as MonthlySummary;
       return `
         <div class="pattern-item">
-          <span class="pattern-label">コードを書いた日数</span>
+          <span class="pattern-label">${t('daysActive', lang)}</span>
           <span class="pattern-value" data-scramble="${monthlySummary.activeDaysCount} days">${monthlySummary.activeDaysCount} days</span>
         </div>
         <div class="pattern-item">
-          <span class="pattern-label">最長連続コーディング時間</span>
+          <span class="pattern-label">${t('longestSession', lang)}</span>
           <span class="pattern-value" data-scramble="${formatDuration(summary.longestSessionMs)}">${formatDuration(summary.longestSessionMs)}</span>
         </div>
         <div class="pattern-item">
-          <span class="pattern-label">編集した文字数</span>
+          <span class="pattern-label">${t('charactersEdited', lang)}</span>
           <span class="pattern-value" data-scramble="${this.formatNumber(summary.totalCharactersEdited)}">${this.formatNumber(summary.totalCharactersEdited)}</span>
         </div>
       `;
@@ -6928,15 +6966,15 @@ export class WebviewProvider {
       // 週間
       return `
         <div class="pattern-item">
-          <span class="pattern-label">最長コーディング</span>
+          <span class="pattern-label">${t('longestCoding', lang)}</span>
           <span class="pattern-value" data-scramble="${formatDuration(summary.longestSessionMs)}">${formatDuration(summary.longestSessionMs)}</span>
         </div>
         <div class="pattern-item">
-          <span class="pattern-label">連続コーディング</span>
+          <span class="pattern-label">${t('streakDays', lang)}</span>
           <span class="pattern-value" data-scramble="${summary.streakDays} days">${summary.streakDays} days</span>
         </div>
         <div class="pattern-item">
-          <span class="pattern-label">編集した文字数</span>
+          <span class="pattern-label">${t('charactersEdited', lang)}</span>
           <span class="pattern-value" data-scramble="${this.formatNumber(summary.totalCharactersEdited)}">${this.formatNumber(summary.totalCharactersEdited)}</span>
         </div>
       `;
@@ -7010,11 +7048,11 @@ export class WebviewProvider {
           <span class="legend-label">Less</span>
           <div class="legend-squares">
             <div class="legend-square level-0" style="background: #3d4451;"></div>
-            <div class="legend-square level-1" style="background: #4ade80;"></div>
-            <div class="legend-square level-2" style="background: #39d353;"></div>
-            <div class="legend-square level-3" style="background: #26a641;"></div>
-            <div class="legend-square level-4" style="background: #006d32;"></div>
-            <div class="legend-square level-5" style="background: #0e4429;"></div>
+            <div class="legend-square level-1" style="background: #033A16;"></div>
+            <div class="legend-square level-2" style="background: #196C2E;"></div>
+            <div class="legend-square level-3" style="background: #2EA043;"></div>
+            <div class="legend-square level-4" style="background: #56D364;"></div>
+            <div class="legend-square level-5" style="background: #7EE787;"></div>
           </div>
           <span class="legend-label">More</span>
         </div>
@@ -7083,11 +7121,11 @@ export class WebviewProvider {
         <span class="legend-label">Less</span>
         <div class="legend-squares">
           <div class="legend-square" style="background: #3d4451;"></div>
-          <div class="legend-square" style="background: #4ade80;"></div>
-          <div class="legend-square" style="background: #39d353;"></div>
-          <div class="legend-square" style="background: #26a641;"></div>
-          <div class="legend-square" style="background: #006d32;"></div>
-          <div class="legend-square" style="background: #0e4429;"></div>
+          <div class="legend-square" style="background: #033A16;"></div>
+          <div class="legend-square" style="background: #196C2E;"></div>
+          <div class="legend-square" style="background: #2EA043;"></div>
+          <div class="legend-square" style="background: #56D364;"></div>
+          <div class="legend-square" style="background: #7EE787;"></div>
         </div>
         <span class="legend-label">More</span>
       </div>
@@ -7113,43 +7151,44 @@ export class WebviewProvider {
    * 記録メッセージを取得（期間別）
    */
   private getRecordsMessage(streakDays: number, longestSessionMs: number, periodType: import('../types').ReviewPeriodType = 'week', summary?: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     const sessionHours = longestSessionMs / (1000 * 60 * 60);
 
     if (periodType === 'year' && summary) {
       const yearlySummary = summary as YearlySummary;
       if (yearlySummary.totalDaysActive >= 300) {
-        return '🔥 年間300日以上コーディング！驚異的な継続力です';
+        return t('recordsYearly300', lang);
       } else if (yearlySummary.totalDaysActive >= 200) {
-        return '💪 年間200日以上アクティブ！素晴らしい1年でした';
+        return t('recordsYearly200', lang);
       } else if (yearlySummary.longestStreakInYear >= 30) {
-        return `🏆 ${yearlySummary.longestStreakInYear}日連続の記録は立派です！`;
+        return t('recordsYearlyStreak', lang, { days: yearlySummary.longestStreakInYear });
       } else {
-        return '🌟 1年間お疲れさまでした。来年も頑張りましょう！';
+        return t('recordsYearlyDefault', lang);
       }
     } else if (periodType === 'month' && summary) {
       const monthlySummary = summary as MonthlySummary;
       if (monthlySummary.activeDaysCount >= 25) {
-        return '🔥 ほぼ毎日コーディング！素晴らしい継続力です';
+        return t('recordsMonthly25', lang);
       } else if (monthlySummary.activeDaysCount >= 20) {
-        return '💪 月の大半をコーディングに費やしましたね';
+        return t('recordsMonthly15', lang);
       } else if (sessionHours >= 4) {
-        return '🎯 長時間集中できるのは才能です。深い没入を楽しんで！';
+        return t('recordsMonthlyLong', lang);
       } else {
-        return '🌟 今月もお疲れさまでした。来月も頑張りましょう！';
+        return t('recordsMonthlyDefault', lang);
       }
     }
 
     // 週間用
     if (streakDays >= 7) {
-      return '🔥 毎日コードを書いている！素晴らしい継続力です';
+      return t('recordsWeekly7', lang);
     } else if (streakDays >= 5) {
-      return '💪 平日は毎日コーディング！良いリズムですね';
+      return t('recordsWeekly5', lang);
     } else if (sessionHours >= 4) {
-      return '🎯 長時間集中できるのは才能です。深い没入を楽しんで！';
+      return t('recordsWeeklyLong3', lang);
     } else if (sessionHours >= 2) {
-      return '⚡ 適度な集中時間を維持できていますね';
+      return t('recordsWeeklyLong1', lang);
     } else {
-      return '🌟 コツコツと積み重ねることが大切です';
+      return t('recordsWeeklyDefault', lang);
     }
   }
 
@@ -7157,14 +7196,15 @@ export class WebviewProvider {
    * ファイルメッセージを取得
    */
   private getFilesMessage(fileCount: number): string {
+    const lang = this.lang;
     if (fileCount >= 5) {
-      return '📂 多くのファイルを行き来して作業しましたね';
+      return t('fileMulti10', lang);
     } else if (fileCount >= 3) {
-      return '📝 いくつかのファイルに集中して作業しました';
+      return t('fileMulti5', lang);
     } else if (fileCount >= 1) {
-      return '🎯 少数のファイルに集中して取り組みました';
+      return t('fileFew', lang);
     } else {
-      return '📄 ファイルアクセスデータがありません';
+      return t('fileNone', lang);
     }
   }
 
@@ -7172,45 +7212,46 @@ export class WebviewProvider {
    * 最終メッセージを取得
    */
   private getFinalMessage(summary: WeeklySummary | MonthlySummary | YearlySummary): string {
+    const lang = this.lang;
     const hours = summary.totalCodingTimeMs / (1000 * 60 * 60);
     const messages = [];
     const periodType = (summary as MonthlySummary | YearlySummary).periodType || 'week';
 
     if (periodType === 'year') {
       if (hours >= 500) {
-        messages.push(`今年は${Math.round(hours)}時間もコードと向き合いました！`);
+        messages.push(t('finalYearlyHoursHigh', lang, { hours: Math.round(hours) }));
       } else {
-        messages.push(`今年は${Math.round(hours)}時間のコーディング、お疲れさまでした。`);
+        messages.push(t('finalYearlyHoursLow', lang, { hours: Math.round(hours) }));
       }
       const yearlySummary = summary as YearlySummary;
       if (yearlySummary.totalDaysActive >= 200) {
-        messages.push(`${yearlySummary.totalDaysActive}日もアクティブに活動した1年でした！`);
+        messages.push(t('finalYearlyDays', lang, { days: yearlySummary.totalDaysActive }));
       }
-      messages.push('来年も素敵なコーディングライフを！🎆');
+      messages.push(t('finalYearlyEnd', lang));
     } else if (periodType === 'month') {
       if (hours >= 80) {
-        messages.push(`今月は${Math.round(hours)}時間もコードと向き合いました！`);
+        messages.push(t('finalMonthlyHoursHigh', lang, { hours: Math.round(hours) }));
       } else {
-        messages.push(`今月も${Math.round(hours)}時間のコーディング、お疲れさまでした。`);
+        messages.push(t('finalMonthlyHoursLow', lang, { hours: Math.round(hours) }));
       }
       if (summary.streakDays >= 10) {
-        messages.push(`${summary.streakDays}日連続でコードを書いた継続力は素晴らしいです！`);
+        messages.push(t('finalMonthlyStreak', lang, { days: summary.streakDays }));
       }
-      messages.push('来月も素敵なコーディングライフを！');
+      messages.push(t('finalMonthlyEnd', lang));
     } else {
       if (hours >= 20) {
-        messages.push(`今週は${Math.round(hours)}時間もコードと向き合いました。`);
+        messages.push(t('finalWeeklyHoursHigh', lang, { hours: Math.round(hours) }));
       } else {
-        messages.push(`今週も${Math.round(hours)}時間のコーディング、お疲れさまでした。`);
+        messages.push(t('finalWeeklyHoursLow', lang, { hours: Math.round(hours) }));
       }
       if (summary.streakDays >= 5) {
-        messages.push(`${summary.streakDays}日連続でコードを書いた継続力は素晴らしいです！`);
+        messages.push(t('finalWeeklyStreak', lang, { days: summary.streakDays }));
       }
-      messages.push('来週も素敵なコーディングライフを！');
+      messages.push(t('finalWeeklyEnd', lang));
     }
 
     if (summary.topLanguages.length > 0) {
-      messages.splice(messages.length - 1, 0, `${summary.topLanguages[0].displayName}を中心に、着実にスキルを磨いています。`);
+      messages.splice(messages.length - 1, 0, t('finalTopLang', lang, { lang: summary.topLanguages[0].displayName }));
     }
 
     return messages.join('<br>');
@@ -7219,7 +7260,8 @@ export class WebviewProvider {
   /**
    * 比較をレンダリング
    */
-  private renderComparison(percentage: number, currentTotalMs: number, label: string = '先週'): string {
+  private renderComparison(percentage: number, currentTotalMs: number, label: string): string {
+    const lang = this.lang;
     if (percentage === 0) return '';
 
     const isPositive = percentage > 0;
@@ -7234,7 +7276,7 @@ export class WebviewProvider {
 
     return `
       <div class="comparison ${cssClass} animate-fade-in delay-4">
-        ${label}比 ${sign}${Math.round(percentage)}%（${sign}${timeDiffFormatted}）
+        ${t('comparedTo', lang, { label })} ${sign}${Math.round(percentage)}%（${sign}${timeDiffFormatted}）
       </div>
     `;
   }
@@ -7243,6 +7285,7 @@ export class WebviewProvider {
    * ヒートマップをレンダリング
    */
   private renderHeatmap(hourlyDistribution: number[]): string {
+    const lang = this.lang;
     const maxTime = Math.max(...hourlyDistribution, 1);
 
     const cells = hourlyDistribution.map((time, hour) => {
@@ -7255,11 +7298,11 @@ export class WebviewProvider {
         ${cells}
       </div>
       <div class="heatmap-labels">
-        <span>0時</span>
-        <span>6時</span>
-        <span>12時</span>
-        <span>18時</span>
-        <span>23時</span>
+        <span>${t('hour0', lang)}</span>
+        <span>${t('hour6', lang)}</span>
+        <span>${t('hour12', lang)}</span>
+        <span>${t('hour18', lang)}</span>
+        <span>${t('hour23', lang)}</span>
       </div>
     `;
   }
@@ -7268,12 +7311,13 @@ export class WebviewProvider {
    * 日別コーディング時間をレンダリング
    */
   private renderDailyBreakdown(dailyStats: import('../types').DailyStats[]): string {
+    const lang = this.lang;
     if (dailyStats.length === 0) {
-      return '<p class="subtitle">データがありません</p>';
+      return `<p class="subtitle">${t('noData', lang)}</p>`;
     }
 
     const maxTime = Math.max(...dailyStats.map(d => d.totalTimeMs), 1);
-    const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+    const dayNames = [getShortDayName(0, lang), getShortDayName(1, lang), getShortDayName(2, lang), getShortDayName(3, lang), getShortDayName(4, lang), getShortDayName(5, lang), getShortDayName(6, lang)];
 
     return `
       <div class="daily-bars">
@@ -7306,12 +7350,13 @@ export class WebviewProvider {
    * 日別コーディング時間をアニメーション付きでレンダリング
    */
   private renderDailyBreakdownAnimated(dailyStats: import('../types').DailyStats[]): string {
+    const lang = this.lang;
     if (dailyStats.length === 0) {
-      return '<p class="subtitle animate-fade-in delay-3">データがありません</p>';
+      return `<p class="subtitle animate-fade-in delay-3">${t('noData', lang)}</p>`;
     }
 
     const maxTime = Math.max(...dailyStats.map(d => d.totalTimeMs), 1);
-    const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+    const dayNames = [getShortDayName(0, lang), getShortDayName(1, lang), getShortDayName(2, lang), getShortDayName(3, lang), getShortDayName(4, lang), getShortDayName(5, lang), getShortDayName(6, lang)];
 
     // データがある項目のみにアニメーション遅延を割り当て
     let dataItemCount = 0;
@@ -7353,30 +7398,36 @@ export class WebviewProvider {
    * 週別コーディング時間をレンダリング（月間レビュー用）
    */
   private renderWeeklyBreakdownAnimated(summary: import('../types').MonthlySummary): string {
+    const lang = this.lang;
     const weeklyBreakdown = summary.weeklyBreakdown || [];
+
+    // ISO週番号を計算するヘルパー関数
+    const getISOWeekNumber = (date: Date): number => {
+      const startOfYear = new Date(date.getFullYear(), 0, 1);
+      const days = Math.floor((date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.ceil((days + startOfYear.getDay() + 1) / 7);
+    };
 
     // 月の開始日と終了日から全ての週を計算
     const monthStart = new Date(summary.weekStartDate);
     const monthEnd = new Date(summary.weekEndDate);
 
     // 月内の全ての週を生成
-    const allWeeks: Array<{ weekNum: number; startDate: Date; data: import('../types').WeekBreakdown | null }> = [];
+    const allWeeks: Array<{ weekNum: number; isoWeekNum: number; startDate: Date; data: import('../types').WeekBreakdown | null }> = [];
     const currentDate = new Date(monthStart);
     let weekNum = 1;
 
     while (currentDate <= monthEnd) {
-      // この週の開始日（月曜日に調整、または月初）
+      // この週の開始日
       const weekStart = new Date(currentDate);
+      const isoWeekNum = getISOWeekNumber(weekStart);
 
-      // 既存データから該当する週を探す
-      const existingWeek = weeklyBreakdown.find(w => {
-        const wStart = new Date(w.weekStartDate);
-        const wEnd = new Date(w.weekEndDate);
-        return weekStart >= wStart && weekStart <= wEnd;
-      });
+      // 既存データから該当する週を探す（ISO週番号でマッチング）
+      const existingWeek = weeklyBreakdown.find(w => w.weekNumber === isoWeekNum);
 
       allWeeks.push({
         weekNum,
+        isoWeekNum,
         startDate: new Date(weekStart),
         data: existingWeek || null
       });
@@ -7399,7 +7450,7 @@ export class WebviewProvider {
     }
 
     if (allWeeks.length === 0) {
-      return '<p class="subtitle animate-fade-in delay-3">データがありません</p>';
+      return `<p class="subtitle animate-fade-in delay-3">${t('noData', lang)}</p>`;
     }
 
     const maxTime = Math.max(...allWeeks.map(w => w.data?.totalTimeMs || 0), 1);
@@ -7428,7 +7479,7 @@ export class WebviewProvider {
                 ` : ''}
               </div>
               <div class="daily-bar-label animate-fade-in delay-${hasData ? delayIndex : 3}">
-                <span class="day-name">${week.weekNum}週目</span>
+                <span class="day-name">${t('weekN', lang, { n: week.weekNum })}</span>
                 <span class="day-num">${weekLabel}</span>
               </div>
             </div>
@@ -7495,6 +7546,7 @@ export class WebviewProvider {
    * ヒートマップをアニメーション付きでレンダリング
    */
   private renderHeatmapAnimated(hourlyDistribution: number[]): string {
+    const lang = this.lang;
     const maxTime = Math.max(...hourlyDistribution, 1);
 
     const cells = hourlyDistribution.map((time, hour) => {
@@ -7508,11 +7560,11 @@ export class WebviewProvider {
         ${cells}
       </div>
       <div class="heatmap-labels animate-fade-in delay-7">
-        <span>0時</span>
-        <span>6時</span>
-        <span>12時</span>
-        <span>18時</span>
-        <span>23時</span>
+        <span>${t('hour0', lang)}</span>
+        <span>${t('hour6', lang)}</span>
+        <span>${t('hour12', lang)}</span>
+        <span>${t('hour18', lang)}</span>
+        <span>${t('hour23', lang)}</span>
       </div>
     `;
   }
@@ -7530,17 +7582,26 @@ export class WebviewProvider {
         });
       }
 
-      // 画面幅に応じてコンテンツをスケーリング
+      // 画面幅・高さに応じてコンテンツをスケーリング
       function adjustScale() {
         const baseWidth = 944;
+        const baseHeight = 1000; // より積極的に縮小
         const container = document.querySelector('.slides-container');
+        const slideNav = document.querySelector('.slide-nav');
         const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
 
-        if (viewportWidth < baseWidth) {
-          const scale = viewportWidth / baseWidth;
-          container.style.zoom = scale;
-        } else {
-          container.style.zoom = 1;
+        // 幅と高さの両方からスケールを計算
+        const widthScale = viewportWidth / baseWidth;
+        const availableHeight = viewportHeight - 100; // ナビ + プログレスバー分
+        const heightScale = availableHeight / baseHeight;
+
+        // 幅・高さのうち小さい方を採用（1を超えない）
+        const scale = Math.min(1, widthScale, heightScale);
+
+        container.style.zoom = scale;
+        if (slideNav) {
+          slideNav.style.zoom = scale;
         }
       }
 
@@ -8269,7 +8330,7 @@ export class WebviewProvider {
           // Show success feedback
           downloadBtn.classList.add('success');
           const originalText = downloadBtn.innerHTML;
-          downloadBtn.innerHTML = '<span class="btn-icon">✓</span> ダウンロード完了';
+          downloadBtn.innerHTML = '<span class="btn-icon">✓</span> ' + i18n.downloadComplete;
           setTimeout(() => {
             downloadBtn.classList.remove('success');
             downloadBtn.innerHTML = originalText;
@@ -8281,7 +8342,7 @@ export class WebviewProvider {
         copyBtn.addEventListener('click', async () => {
           // Show loading state immediately
           const originalText = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<span class="btn-icon spinning">⏳</span> コピー中...';
+          copyBtn.innerHTML = '<span class="btn-icon spinning">⏳</span> ' + i18n.copying;
           copyBtn.disabled = true;
 
           const canvas = await captureCardAsImage();
@@ -8304,7 +8365,7 @@ export class WebviewProvider {
 
               // Show success feedback
               copyBtn.classList.add('success');
-              copyBtn.innerHTML = '<span class="btn-icon">✓</span> コピー完了';
+              copyBtn.innerHTML = '<span class="btn-icon">✓</span> ' + i18n.copyComplete;
               copyBtn.disabled = false;
               setTimeout(() => {
                 copyBtn.classList.remove('success');
@@ -8313,10 +8374,10 @@ export class WebviewProvider {
             });
           } catch (err) {
             console.error('Failed to copy image:', err);
-            copyBtn.innerHTML = '<span class="btn-icon">✗</span> コピー失敗';
+            copyBtn.innerHTML = '<span class="btn-icon">✗</span> ' + i18n.copyFailed;
             copyBtn.disabled = false;
             setTimeout(() => {
-              copyBtn.innerHTML = '<span class="btn-icon">📋</span> 画像をコピー';
+              copyBtn.innerHTML = '<span class="btn-icon">📋</span> ' + i18n.copyImage;
             }, 2000);
           }
         });
@@ -8394,14 +8455,15 @@ export class WebviewProvider {
    * 期間タイプに応じたヒントテキストを取得
    */
   private getPeriodHint(periodType: ReviewPeriodType): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'month':
-        return '✨ 今月のあなたの頑張りを振り返ろう';
+        return t('periodHintMonth', lang);
       case 'year':
-        return '🎊 今年のコーディングジャーニーを振り返ろう';
+        return t('periodHintYear', lang);
       case 'week':
       default:
-        return '✨ 今週のあなたの頑張りを振り返ろう';
+        return t('periodHintWeek', lang);
     }
   }
 
@@ -8439,14 +8501,15 @@ export class WebviewProvider {
    * 最終スライドのサブタイトルを取得
    */
   private getFinalSubtitle(periodType: ReviewPeriodType): string {
+    const lang = this.lang;
     switch (periodType) {
       case 'month':
-        return '今月もお疲れさまでした';
+        return t('finalSubtitleMonth', lang);
       case 'year':
-        return '今年もお疲れさまでした';
+        return t('finalSubtitleYear', lang);
       case 'week':
       default:
-        return '今週もお疲れさまでした';
+        return t('finalSubtitleWeek', lang);
     }
   }
 
@@ -8515,15 +8578,16 @@ export class WebviewProvider {
    * 前の期間のラベルを取得（具体的な日付表示）
    */
   private getPrevPeriodLabel(periodType: ReviewPeriodType): string {
+    const lang = this.lang;
     const now = new Date();
     switch (periodType) {
       case 'month': {
         const targetDate = new Date(now.getFullYear(), now.getMonth() + this.currentMonthOffset - 1, 1);
-        return `${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月`;
+        return t('dateFormatYearMonth', lang, { year: targetDate.getFullYear(), month: targetDate.getMonth() + 1 });
       }
       case 'year': {
         const targetYear = now.getFullYear() + this.currentYearOffset - 1;
-        return `${targetYear}年`;
+        return t('dateFormatYear', lang, { year: targetYear });
       }
       case 'week':
       default: {
@@ -8532,7 +8596,7 @@ export class WebviewProvider {
         const dayOfWeek = targetDate.getDay();
         const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 月曜日を基準に
         targetDate.setDate(targetDate.getDate() - diff + (this.currentWeekOffset - 1) * 7);
-        return `${targetDate.getMonth() + 1}/${targetDate.getDate()}週`;
+        return t('dateFormatWeekOf', lang, { month: targetDate.getMonth() + 1, day: targetDate.getDate() });
       }
     }
   }
@@ -8541,15 +8605,16 @@ export class WebviewProvider {
    * 次の期間のラベルを取得（具体的な日付表示）
    */
   private getNextPeriodLabel(periodType: ReviewPeriodType): string {
+    const lang = this.lang;
     const now = new Date();
     switch (periodType) {
       case 'month': {
         const targetDate = new Date(now.getFullYear(), now.getMonth() + this.currentMonthOffset + 1, 1);
-        return `${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月`;
+        return t('dateFormatYearMonth', lang, { year: targetDate.getFullYear(), month: targetDate.getMonth() + 1 });
       }
       case 'year': {
         const targetYear = now.getFullYear() + this.currentYearOffset + 1;
-        return `${targetYear}年`;
+        return t('dateFormatYear', lang, { year: targetYear });
       }
       case 'week':
       default: {
@@ -8558,7 +8623,7 @@ export class WebviewProvider {
         const dayOfWeek = targetDate.getDay();
         const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 月曜日を基準に
         targetDate.setDate(targetDate.getDate() - diff + (this.currentWeekOffset + 1) * 7);
-        return `${targetDate.getMonth() + 1}/${targetDate.getDate()}週`;
+        return t('dateFormatWeekOf', lang, { month: targetDate.getMonth() + 1, day: targetDate.getDate() });
       }
     }
   }

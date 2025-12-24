@@ -1,5 +1,6 @@
 import { StorageService } from './StorageService';
 import { CodingStyleService } from './CodingStyleService';
+import { Language } from '../i18n/translations';
 import {
   WeeklySummary,
   MonthlySummary,
@@ -169,7 +170,7 @@ export class StatisticsService {
   /**
    * 月間サマリーを生成
    */
-  public generateMonthlySummary(monthOffset: number = 0): MonthlySummary | null {
+  public generateMonthlySummary(monthOffset: number = 0, lang: Language = 'ja'): MonthlySummary | null {
     // モックデータモードの場合はモックデータを返す
     if (this.useMockData) {
       return generateMockMonthlySummary(monthOffset);
@@ -288,7 +289,7 @@ export class StatisticsService {
     };
 
     // コーディングスタイルを検出
-    const codingStyles = this.codingStyleService.detectStyles(baseSummary as WeeklySummary);
+    const codingStyles = this.codingStyleService.detectStyles(baseSummary as WeeklySummary, lang);
 
     return {
       ...baseSummary,
@@ -299,7 +300,7 @@ export class StatisticsService {
   /**
    * 年間サマリーを生成（12月のみ有効）
    */
-  public generateYearlySummary(yearOffset: number = 0): YearlySummary | null {
+  public generateYearlySummary(yearOffset: number = 0, lang: Language = 'ja'): YearlySummary | null {
     // モックデータモードの場合はモックデータを返す
     if (this.useMockData) {
       return generateMockYearlySummary(yearOffset);
@@ -446,7 +447,7 @@ export class StatisticsService {
     };
 
     // コーディングスタイルを検出（年間専用メソッドを使用）
-    const codingStyles = this.codingStyleService.detectYearlyStyles(baseSummary as YearlySummary);
+    const codingStyles = this.codingStyleService.detectYearlyStyles(baseSummary as YearlySummary, lang);
 
     return {
       ...baseSummary,

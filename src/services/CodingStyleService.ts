@@ -8,6 +8,7 @@ import {
   MonthBreakdown
 } from '../types';
 import { formatDuration } from '../utils/dateUtils';
+import { Language, t } from '../i18n/translations';
 
 /**
  * コーディングスタイル検出サービス
@@ -23,20 +24,20 @@ export class CodingStyleService {
   /**
    * サマリーからコーディングスタイルを検出
    */
-  public detectStyles(summary: WeeklySummary | MonthlySummary | YearlySummary): CodingStyle[] {
+  public detectStyles(summary: WeeklySummary | MonthlySummary | YearlySummary, lang: Language = 'ja'): CodingStyle[] {
     const styles: CodingStyle[] = [];
 
     // 時間系スタイル
-    this.detectTimeStyles(summary, styles);
+    this.detectTimeStyles(summary, styles, lang);
 
     // リズム系スタイル
-    this.detectRhythmStyles(summary, styles);
+    this.detectRhythmStyles(summary, styles, lang);
 
     // 集中系スタイル
-    this.detectFocusStyles(summary, styles);
+    this.detectFocusStyles(summary, styles, lang);
 
     // 探索系スタイル
-    this.detectExplorationStyles(summary, styles);
+    this.detectExplorationStyles(summary, styles, lang);
 
     // 最大5つまでに制限（多すぎると意味が薄れる）
     return styles.slice(0, 5);
@@ -45,7 +46,7 @@ export class CodingStyleService {
   /**
    * 時間系スタイルを検出
    */
-  private detectTimeStyles(summary: WeeklySummary, styles: CodingStyle[]): void {
+  private detectTimeStyles(summary: WeeklySummary, styles: CodingStyle[], lang: Language): void {
     const totalHours = summary.totalCodingTimeMs / (1000 * 60 * 60);
     const longestSessionHours = summary.longestSessionMs / (1000 * 60 * 60);
     const avgSessionMs = this.calculateAverageSession(summary.dailyBreakdown);
@@ -59,9 +60,9 @@ export class CodingStyleService {
         id: 'steady_coder',
         category: 'time',
         emoji: '🐢',
-        title: 'コツコツ亀さん',
-        description: 'コンスタントにコーディングする時間を持っていました',
-        observation: `${activeDays}日間コーディング`
+        title: t('styleSteadyCoderTitle', lang),
+        description: t('styleSteadyCoderDesc', lang),
+        observation: t('styleSteadyCoderObs', lang, { days: activeDays })
       });
     }
 
@@ -71,9 +72,9 @@ export class CodingStyleService {
         id: 'marathon_runner',
         category: 'time',
         emoji: '🏃',
-        title: '耐久レースの覇者',
-        description: '長めのセッションでじっくり取り組む時間がありました',
-        observation: `最長${formatDuration(summary.longestSessionMs)}`
+        title: t('styleMarathonRunnerTitle', lang),
+        description: t('styleMarathonRunnerDesc', lang),
+        observation: t('styleMarathonRunnerObs', lang, { duration: formatDuration(summary.longestSessionMs) })
       });
     }
 
@@ -83,9 +84,9 @@ export class CodingStyleService {
         id: 'sprinter',
         category: 'time',
         emoji: '⚡',
-        title: '電光石火くん',
-        description: '短い時間で集中してコーディングするスタイル',
-        observation: `平均${Math.round(avgSessionMinutes)}分のセッション`
+        title: t('styleSprinterTitle', lang),
+        description: t('styleSprinterDesc', lang),
+        observation: t('styleSprinterObs', lang, { minutes: Math.round(avgSessionMinutes) })
       });
     }
   }
@@ -93,16 +94,16 @@ export class CodingStyleService {
   /**
    * リズム系スタイルを検出
    */
-  private detectRhythmStyles(summary: WeeklySummary, styles: CodingStyle[]): void {
+  private detectRhythmStyles(summary: WeeklySummary, styles: CodingStyle[], lang: Language): void {
     // Night Owl: 夜ふかし率が高い
     if (summary.nightOwlPercentage >= 30) {
       styles.push({
         id: 'night_owl',
         category: 'rhythm',
         emoji: '🦉',
-        title: '夜更かしフクロウさん',
-        description: '夜の静かな時間にコーディングすることが多かったようです',
-        observation: `${Math.round(summary.nightOwlPercentage)}%が22時以降`
+        title: t('styleNightOwlTitle', lang),
+        description: t('styleNightOwlDesc', lang),
+        observation: t('styleNightOwlObs', lang, { percent: Math.round(summary.nightOwlPercentage) })
       });
     }
 
@@ -114,9 +115,9 @@ export class CodingStyleService {
         id: 'early_bird',
         category: 'rhythm',
         emoji: '🐓',
-        title: '早起きニワトリさん',
-        description: '朝の時間を活用してコーディングしていました',
-        observation: `${Math.round(morningTime / totalTime * 100)}%が朝の時間帯`
+        title: t('styleEarlyBirdTitle', lang),
+        description: t('styleEarlyBirdDesc', lang),
+        observation: t('styleEarlyBirdObs', lang, { percent: Math.round(morningTime / totalTime * 100) })
       });
     }
 
@@ -129,9 +130,9 @@ export class CodingStyleService {
         id: 'weekday_coder',
         category: 'rhythm',
         emoji: '💼',
-        title: 'お仕事モード全開',
-        description: '平日を中心にコーディングしていました',
-        observation: `${Math.round(weekdayTime / totalWeekTime * 100)}%が平日`
+        title: t('styleWeekdayCoderTitle', lang),
+        description: t('styleWeekdayCoderDesc', lang),
+        observation: t('styleWeekdayCoderObs', lang, { percent: Math.round(weekdayTime / totalWeekTime * 100) })
       });
     }
 
@@ -141,9 +142,9 @@ export class CodingStyleService {
         id: 'weekend_warrior',
         category: 'rhythm',
         emoji: '🎮',
-        title: '週末コード戦士',
-        description: '週末もコーディングの時間を取っていました',
-        observation: `${Math.round(weekendTime / totalWeekTime * 100)}%が週末`
+        title: t('styleWeekendWarriorTitle', lang),
+        description: t('styleWeekendWarriorDesc', lang),
+        observation: t('styleWeekendWarriorObs', lang, { percent: Math.round(weekendTime / totalWeekTime * 100) })
       });
     }
   }
@@ -151,16 +152,16 @@ export class CodingStyleService {
   /**
    * 集中系スタイルを検出
    */
-  private detectFocusStyles(summary: WeeklySummary, styles: CodingStyle[]): void {
+  private detectFocusStyles(summary: WeeklySummary, styles: CodingStyle[], lang: Language): void {
     // Deep Focus: 1つのプロジェクトに集中
     if (summary.topProjects.length > 0 && summary.topProjects[0].percentage >= 70) {
       styles.push({
         id: 'deep_focus',
         category: 'focus',
         emoji: '🎯',
-        title: '没頭の職人さん',
-        description: '1つのプロジェクトに集中して取り組んでいました',
-        observation: `${summary.topProjects[0].name}に${Math.round(summary.topProjects[0].percentage)}%`
+        title: t('styleDeepFocusTitle', lang),
+        description: t('styleDeepFocusDesc', lang),
+        observation: t('styleDeepFocusObs', lang, { project: summary.topProjects[0].name, percent: Math.round(summary.topProjects[0].percentage) })
       });
     }
 
@@ -171,9 +172,9 @@ export class CodingStyleService {
         id: 'multi_tasker',
         category: 'focus',
         emoji: '🎪',
-        title: '八面六臂の使い手',
-        description: '複数のプロジェクトを並行して進めていました',
-        observation: `${activeProjects.length}つのプロジェクト`
+        title: t('styleMultiTaskerTitle', lang),
+        description: t('styleMultiTaskerDesc', lang),
+        observation: t('styleMultiTaskerObs', lang, { count: activeProjects.length })
       });
     }
 
@@ -183,9 +184,9 @@ export class CodingStyleService {
         id: 'file_explorer',
         category: 'focus',
         emoji: '🗺️',
-        title: 'ファイル探検隊長',
-        description: '多くのファイルに触れていました',
-        observation: `${summary.totalFilesEdited}ファイル編集`
+        title: t('styleFileExplorerTitle', lang),
+        description: t('styleFileExplorerDesc', lang),
+        observation: t('styleFileExplorerObs', lang, { count: summary.totalFilesEdited })
       });
     }
   }
@@ -193,7 +194,7 @@ export class CodingStyleService {
   /**
    * 探索系スタイルを検出
    */
-  private detectExplorationStyles(summary: WeeklySummary, styles: CodingStyle[]): void {
+  private detectExplorationStyles(summary: WeeklySummary, styles: CodingStyle[], lang: Language): void {
     // Language Explorer: 複数言語を使用
     const usedLanguages = summary.topLanguages.filter(l => l.percentage >= 5);
     if (usedLanguages.length >= 4) {
@@ -201,9 +202,9 @@ export class CodingStyleService {
         id: 'language_explorer',
         category: 'exploration',
         emoji: '🌍',
-        title: '言語の旅人さん',
-        description: '複数の言語を使ってコーディングしていました',
-        observation: `${usedLanguages.length}言語を使用`
+        title: t('styleLanguageExplorerTitle', lang),
+        description: t('styleLanguageExplorerDesc', lang),
+        observation: t('styleLanguageExplorerObs', lang, { count: usedLanguages.length })
       });
     }
 
@@ -213,9 +214,9 @@ export class CodingStyleService {
         id: 'specialist',
         category: 'exploration',
         emoji: '🔬',
-        title: '一筋の求道者',
-        description: '特定の言語に集中して取り組んでいました',
-        observation: `${summary.topLanguages[0].displayName}が${Math.round(summary.topLanguages[0].percentage)}%`
+        title: t('styleSpecialistTitle', lang),
+        description: t('styleSpecialistDesc', lang),
+        observation: t('styleSpecialistObs', lang, { lang: summary.topLanguages[0].displayName, percent: Math.round(summary.topLanguages[0].percentage) })
       });
     }
 
@@ -225,9 +226,9 @@ export class CodingStyleService {
         id: 'consistent',
         category: 'exploration',
         emoji: '🔥',
-        title: '継続の鬼',
-        description: '連続してコーディングを続けていました',
-        observation: `${summary.streakDays}日連続`
+        title: t('styleConsistentTitle', lang),
+        description: t('styleConsistentDesc', lang),
+        observation: t('styleConsistentObs', lang, { days: summary.streakDays })
       });
     }
   }
@@ -280,14 +281,14 @@ export class CodingStyleService {
    * 年間サマリー専用のスタイル検出
    * ※通常スタイルは使用しない、表示数の上限なし
    */
-  public detectYearlyStyles(summary: YearlySummary): CodingStyle[] {
+  public detectYearlyStyles(summary: YearlySummary, lang: Language = 'ja'): CodingStyle[] {
     const styles: CodingStyle[] = [];
 
     // 1. 年間専用スタイルを検出
-    this.detectYearlyExclusiveStyles(summary, styles);
+    this.detectYearlyExclusiveStyles(summary, styles, lang);
 
     // 2. マスター版スタイルを検出（厳しい閾値、進化した絵文字）
-    this.detectMasterStyles(summary, styles);
+    this.detectMasterStyles(summary, styles, lang);
 
     // ※通常スタイルは年間では使用しない
     // ※表示数の上限なし（すべて表示）
@@ -297,7 +298,7 @@ export class CodingStyleService {
   /**
    * 年間専用スタイルを検出（年間レビューでのみ表示）
    */
-  private detectYearlyExclusiveStyles(summary: YearlySummary, styles: CodingStyle[]): void {
+  private detectYearlyExclusiveStyles(summary: YearlySummary, styles: CodingStyle[], lang: Language): void {
     const totalHours = summary.totalCodingTimeMs / (1000 * 60 * 60);
 
     // 年間チャンピオン: 500時間以上
@@ -306,9 +307,9 @@ export class CodingStyleService {
         id: 'annual_champion',
         category: 'time',
         emoji: '🏆',
-        title: '年間チャンピオン',
-        description: '1年間で500時間以上コーディングしました',
-        observation: `${Math.round(totalHours)}時間の記録`,
+        title: t('styleAnnualChampionTitle', lang),
+        description: t('styleAnnualChampionDesc', lang),
+        observation: t('styleAnnualChampionObs', lang, { hours: Math.round(totalHours) }),
         isYearlyExclusive: true
       });
     }
@@ -326,9 +327,9 @@ export class CodingStyleService {
         id: 'growth_star',
         category: 'exploration',
         emoji: '💫',
-        title: '超新星',
-        description: '新しい言語の世界へ飛び込みました',
-        observation: `${newLanguages.length}言語を新たに習得`,
+        title: t('styleGrowthStarTitle', lang),
+        description: t('styleGrowthStarDesc', lang),
+        observation: t('styleGrowthStarObs', lang, { count: newLanguages.length }),
         isYearlyExclusive: true
       });
     }
@@ -340,9 +341,9 @@ export class CodingStyleService {
         id: 'seasonal_master',
         category: 'rhythm',
         emoji: '🌸',
-        title: '四季の覇者',
-        description: '1年を通じてコンスタントに活動しました',
-        observation: '春夏秋冬すべてで活動',
+        title: t('styleSeasonalMasterTitle', lang),
+        description: t('styleSeasonalMasterDesc', lang),
+        observation: t('styleSeasonalMasterObs', lang),
         isYearlyExclusive: true
       });
     }
@@ -353,9 +354,9 @@ export class CodingStyleService {
         id: 'project_architect',
         category: 'focus',
         emoji: '🏗️',
-        title: 'プロジェクト建築家',
-        description: '多くのプロジェクトに貢献しました',
-        observation: `${summary.topProjects.length}プロジェクト`,
+        title: t('styleProjectArchitectTitle', lang),
+        description: t('styleProjectArchitectDesc', lang),
+        observation: t('styleProjectArchitectObs', lang, { count: summary.topProjects.length }),
         isYearlyExclusive: true
       });
     }
@@ -366,9 +367,9 @@ export class CodingStyleService {
         id: 'code_explorer',
         category: 'focus',
         emoji: '🦈',
-        title: 'コードの海の主',
-        description: '広大なコードの海を泳ぎ尽くしました',
-        observation: `${summary.totalFilesEdited}ファイル編集`,
+        title: t('styleCodeExplorerTitle', lang),
+        description: t('styleCodeExplorerDesc', lang),
+        observation: t('styleCodeExplorerObs', lang, { count: summary.totalFilesEdited }),
         isYearlyExclusive: true
       });
     }
@@ -377,7 +378,7 @@ export class CodingStyleService {
   /**
    * マスター版スタイルを検出（通常スタイルの進化版、より厳しい閾値）
    */
-  private detectMasterStyles(summary: YearlySummary, styles: CodingStyle[]): void {
+  private detectMasterStyles(summary: YearlySummary, styles: CodingStyle[], lang: Language): void {
     const activeDays = summary.dailyBreakdown.filter(d => d.totalTimeMs > 0).length;
     const longestSessionHours = summary.longestSessionMs / (1000 * 60 * 60);
 
@@ -387,9 +388,9 @@ export class CodingStyleService {
         id: 'steady_coder',
         category: 'time',
         emoji: '🐉',
-        title: '昇龍の歩み',
-        description: '1年を通じて着実にコーディングを続け、龍のごとく昇りつめました',
-        observation: `${activeDays}日間コーディング`,
+        title: t('styleSteadyCoderMasterTitle', lang),
+        description: t('styleSteadyCoderMasterDesc', lang),
+        observation: t('styleSteadyCoderObs', lang, { days: activeDays }),
         isMaster: true
       });
     }
@@ -400,22 +401,22 @@ export class CodingStyleService {
         id: 'marathon_runner',
         category: 'time',
         emoji: '🦸',
-        title: '超人ランナー',
-        description: '人間離れした集中力を発揮しました',
-        observation: `最長${formatDuration(summary.longestSessionMs)}`,
+        title: t('styleMarathonRunnerMasterTitle', lang),
+        description: t('styleMarathonRunnerMasterDesc', lang),
+        observation: t('styleMarathonRunnerObs', lang, { duration: formatDuration(summary.longestSessionMs) }),
         isMaster: true
       });
     }
 
-    // マスター版: 闇夜の支配者（40%以上）🦉→🧛
+    // マスター版: 闘夜の支配者（40%以上）🦉→🧛
     if (summary.nightOwlPercentage >= 40) {
       styles.push({
         id: 'night_owl',
         category: 'rhythm',
         emoji: '🧛',
-        title: '闇夜の支配者',
-        description: '夜の世界を完全に支配しています',
-        observation: `${Math.round(summary.nightOwlPercentage)}%が22時以降`,
+        title: t('styleNightOwlMasterTitle', lang),
+        description: t('styleNightOwlMasterDesc', lang),
+        observation: t('styleNightOwlObs', lang, { percent: Math.round(summary.nightOwlPercentage) }),
         isMaster: true
       });
     }
@@ -426,9 +427,9 @@ export class CodingStyleService {
         id: 'consistent',
         category: 'exploration',
         emoji: '🌋',
-        title: '不滅の炎',
-        description: '火山のように絶えることなく燃え続けました',
-        observation: `${summary.streakDays}日連続`,
+        title: t('styleConsistentMasterTitle', lang),
+        description: t('styleConsistentMasterDesc', lang),
+        observation: t('styleConsistentObs', lang, { days: summary.streakDays }),
         isMaster: true
       });
     }
@@ -441,9 +442,9 @@ export class CodingStyleService {
         id: 'early_bird',
         category: 'rhythm',
         emoji: '🌅',
-        title: '黎明の覇者',
-        description: '朝の光とともに目覚め、一日を制しました',
-        observation: `${Math.round(morningTime / totalTime * 100)}%が朝の時間帯`,
+        title: t('styleEarlyBirdMasterTitle', lang),
+        description: t('styleEarlyBirdMasterDesc', lang),
+        observation: t('styleEarlyBirdObs', lang, { percent: Math.round(morningTime / totalTime * 100) }),
         isMaster: true
       });
     }
@@ -454,9 +455,9 @@ export class CodingStyleService {
         id: 'deep_focus',
         category: 'focus',
         emoji: '💎',
-        title: '一途の極み',
-        description: 'ダイヤモンドのように一点に輝きを集中させました',
-        observation: `${summary.topProjects[0].name}に${Math.round(summary.topProjects[0].percentage)}%`,
+        title: t('styleDeepFocusMasterTitle', lang),
+        description: t('styleDeepFocusMasterDesc', lang),
+        observation: t('styleDeepFocusObs', lang, { project: summary.topProjects[0].name, percent: Math.round(summary.topProjects[0].percentage) }),
         isMaster: true
       });
     }
@@ -468,9 +469,9 @@ export class CodingStyleService {
         id: 'language_explorer',
         category: 'exploration',
         emoji: '🚀',
-        title: '銀河の開拓者',
-        description: '宇宙を旅するように多くの言語を開拓しました',
-        observation: `${usedLanguages.length}言語を使用`,
+        title: t('styleLanguageExplorerMasterTitle', lang),
+        description: t('styleLanguageExplorerMasterDesc', lang),
+        observation: t('styleLanguageExplorerObs', lang, { count: usedLanguages.length }),
         isMaster: true
       });
     }
@@ -481,9 +482,9 @@ export class CodingStyleService {
         id: 'specialist',
         category: 'exploration',
         emoji: '🧙',
-        title: '言語の魔術師',
-        description: '一つの言語を極め、魔法のように操ります',
-        observation: `${summary.topLanguages[0].displayName}が${Math.round(summary.topLanguages[0].percentage)}%`,
+        title: t('styleSpecialistMasterTitle', lang),
+        description: t('styleSpecialistMasterDesc', lang),
+        observation: t('styleSpecialistObs', lang, { lang: summary.topLanguages[0].displayName, percent: Math.round(summary.topLanguages[0].percentage) }),
         isMaster: true
       });
     }
@@ -495,9 +496,9 @@ export class CodingStyleService {
         id: 'multi_tasker',
         category: 'focus',
         emoji: '🔱',
-        title: '阿修羅',
-        description: '無数の腕で多くのプロジェクトを同時に操ります',
-        observation: `${activeProjects.length}つのプロジェクトを並行`,
+        title: t('styleMultiTaskerMasterTitle', lang),
+        description: t('styleMultiTaskerMasterDesc', lang),
+        observation: t('styleMultiTaskerMasterObs', lang, { count: activeProjects.length }),
         isMaster: true
       });
     }

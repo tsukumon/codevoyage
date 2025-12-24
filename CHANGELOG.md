@@ -2,10 +2,10 @@
 
 All notable changes to CodeVoyage will be documented in this file.
 
-## [Future]
+## [1.0.7] - 2024-12-24
 
-### Planned
-- English language support
+### Added
+- English language support - Switch language via `codevoyage.language` setting (`ja` / `en`)
 
 ## [1.0.6] - 2024-12-24
 

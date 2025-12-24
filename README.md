@@ -1,3 +1,8 @@
+## INDEX
+- [日本語](#特徴)
+- [English](#features)
+
+
 ## コーディング時間を自動記録し、ハイライト風に振り返る
 
 あなたのコーディング時間やコーディングスタイルの傾向を、Spotify WrappedやYoutube Recap風に振り返りできます。
@@ -59,6 +64,7 @@
 |------|-----------|------|
 | `codevoyage.idleTimeout` | `300` | アイドル判定までの秒数（0で無効化） |
 | `codevoyage.showStatusBar` | `true` | ステータスバー表示 |
+| `codevoyage.language` | `ja` | 表示言語（`ja` / `en`） |
 
 ---
 
@@ -67,7 +73,78 @@
 
 https://github.com/tsukumon/codevoyage/issues
 
+---
+---
 
-## ライセンス
+# English
 
-MIT
+## Automatically track your coding time and review it in style
+
+Review your coding time and coding style trends in a Spotify Wrapped / YouTube Recap style presentation.
+
+Download your summary card at the end of the review and share it on social media with the hashtag ``#codevoyage``.
+
+![CodeVoyage Demo](https://raw.githubusercontent.com/tsukumon/codevoyage/refs/heads/main/images/demo.gif)
+
+---
+
+## Features
+
+- **Fully Automatic** — Tracking starts when you open VS Code. No need to start or stop.
+- **Beautiful Reviews** — Review your week, month, or year with smooth animations.
+- **Local Storage** — All data is stored locally. No account required, no data leaks.
+
+---
+
+## How to Use
+
+### 1. Write Code
+
+That's it. Tracking starts automatically when you open VS Code.
+
+### 2. View Your Review
+
+Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run ``CodeVoyage: Open Dashboard``
+
+Or click the clock icon in the status bar.
+
+---
+
+## What You Can Review
+
+- 📊 **Total Coding Time** — Total time during the period
+- 💻 **Language Ranking** — Breakdown of languages used
+- 📁 **Project Ranking** — Time spent on each project
+- ⏰ **Peak Hours** — Your most focused hours
+- 🔥 **Streak Days** — Consecutive coding days
+- 🎨 **Coding Style** — Your coding patterns (night owl, early bird, etc.)
+- 📅 **Calendar Heatmap** — Visualize your daily activity
+
+---
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `CodeVoyage: Open Dashboard` | Open the dashboard |
+| `CodeVoyage: Export Data (Backup)` | Export data as JSON |
+| `CodeVoyage: Import Data (Restore)` | Import data |
+| `CodeVoyage: Show Demo Review` | Preview with demo data |
+
+---
+
+## Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `codevoyage.idleTimeout` | `300` | Seconds until idle detection (0 to disable) |
+| `codevoyage.showStatusBar` | `true` | Show status bar |
+| `codevoyage.language` | `ja` | Display language (`ja` / `en`) |
+
+---
+
+## Bug Reports
+
+Please report bugs here:
+
+https://github.com/tsukumon/codevoyage/issues

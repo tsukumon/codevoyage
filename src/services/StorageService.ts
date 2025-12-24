@@ -40,7 +40,8 @@ export class StorageService {
       dailyStats: {},
       settings: {
         idleTimeoutMs: 300000,
-        showStatusBar: true
+        showStatusBar: true,
+        language: 'ja'
       }
     };
   }

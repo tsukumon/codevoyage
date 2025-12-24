@@ -2,7 +2,7 @@
   "name": "codevoyage-highlight",
   "displayName": "#codevoyage",
   "description": "Track your coding journey and visualize weekly, monthly, and yearly coding statistics in a beautiful presentation",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "publisher": "tsukumon",
   "icon": "images/icon.png",
   "galleryBanner": {
@@ -13,7 +13,7 @@
     "type": "git",
     "url": "https://github.com/tsukumon/codevoyage"
   },
-  "license": "MIT",
+  "private": true,
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -29,7 +29,8 @@
     "coding time",
     "review",
     "analytics",
-    "visualization"
+    "visualization",
+    "recap"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -71,6 +72,12 @@
           "type": "boolean",
           "default": true,
           "description": "Show today's coding time in the status bar"
+        },
+        "codevoyage.language": {
+          "type": "string",
+          "enum": ["ja", "en"],
+          "default": "ja",
+          "description": "Display language / 表示言語"
         }
       }
     }

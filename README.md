@@ -64,6 +64,7 @@
 |------|-----------|------|
 | `codevoyage.idleTimeout` | `300` | アイドル判定までの秒数（0で無効化） |
 | `codevoyage.showStatusBar` | `true` | ステータスバー表示 |
+| `codevoyage.statusBarPeriod` | `today` | ステータスバーに表示する期間（`today` / `week` / `month`） |
 | `codevoyage.language` | `ja` | 表示言語（`ja` / `en`） |
 
 ---
@@ -139,6 +140,7 @@ Or click the clock icon in the status bar.
 |---------|---------|-------------|
 | `codevoyage.idleTimeout` | `300` | Seconds until idle detection (0 to disable) |
 | `codevoyage.showStatusBar` | `true` | Show status bar |
+| `codevoyage.statusBarPeriod` | `today` | Period to display in status bar (`today` / `week` / `month`) |
 | `codevoyage.language` | `ja` | Display language (`ja` / `en`) |
 
 ---

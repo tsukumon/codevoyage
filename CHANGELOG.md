@@ -2,6 +2,17 @@
 
 All notable changes to CodeVoyage will be documented in this file.
 
+## [1.0.9] - 2024-12-25
+
+### Added
+- Status bar period setting - choose to display today, last 7 days, or last 30 days (`codevoyage.statusBarPeriod`)
+
+### Changed
+- Status bar now appears on the left side
+
+### Fixed
+- Character count was inflated by counting output panel, debug console, etc. Now only counts actual file edits
+
 ## [1.0.8] - 2024-12-24
 
 ### Changed

@@ -71,7 +71,18 @@
         "codevoyage.showStatusBar": {
           "type": "boolean",
           "default": true,
-          "description": "Show today's coding time in the status bar"
+          "description": "Show coding time in the status bar"
+        },
+        "codevoyage.statusBarPeriod": {
+          "type": "string",
+          "enum": ["today", "week", "month"],
+          "enumDescriptions": [
+            "Today only / 今日のみ",
+            "Last 7 days / 過去7日間",
+            "Last 30 days / 過去30日間"
+          ],
+          "default": "today",
+          "description": "Time period to display in status bar / ステータスバーに表示する期間"
         },
         "codevoyage.language": {
           "type": "string",

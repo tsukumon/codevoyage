@@ -66,15 +66,20 @@ function updateSettings(): void {
   const idleTimeoutMs = (config.get<number>('idleTimeout') ?? 300) * 1000;
 
   const language = config.get<'ja' | 'en'>('language') ?? 'ja';
+  const statusBarPeriod = config.get<'today' | 'week' | 'month'>('statusBarPeriod') ?? 'today';
 
   storageService?.updateSettings({
     idleTimeoutMs,
     showStatusBar: config.get<boolean>('showStatusBar') ?? true,
+    statusBarPeriod,
     language
   });
 
   // ActivityDetectorのタイムアウトも更新
   timeTracker?.updateIdleTimeout(idleTimeoutMs);
+
+  // ステータスバーを即座に更新
+  timeTracker?.refreshStatusBar();
 }
 
 export async function deactivate() {

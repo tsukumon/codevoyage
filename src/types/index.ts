@@ -171,11 +171,17 @@ export interface StorageSchema {
 }
 
 /**
+ * ステータスバー表示期間
+ */
+export type StatusBarPeriod = 'today' | 'week' | 'month';
+
+/**
  * 拡張機能設定
  */
 export interface ExtensionSettings {
   idleTimeoutMs: number;
   showStatusBar: boolean;
+  statusBarPeriod: StatusBarPeriod;
   language: 'ja' | 'en';
 }
 

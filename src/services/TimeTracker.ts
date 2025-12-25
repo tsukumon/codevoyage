@@ -60,10 +60,10 @@ export class TimeTracker implements vscode.Disposable {
     const settings = storageService.getSettings();
     this.activityDetector = new ActivityDetector(settings.idleTimeoutMs);
 
-    // ステータスバーアイテムを作成
+    // ステータスバーアイテムを作成（左側の一番右に表示）
     this.statusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Right,
-      100
+      vscode.StatusBarAlignment.Left,
+      0
     );
     this.statusBarItem.command = 'codevoyage.openDashboard';
     this.statusBarItem.tooltip = 'View your journey';
@@ -441,9 +441,29 @@ export class TimeTracker implements vscode.Disposable {
    * ステータスバーを更新
    */
   private updateStatusBar(): void {
-    const todayStats = this.storageService.getOrCreateTodayStats();
-    const formatted = formatDurationShort(todayStats.totalTimeMs);
-    this.statusBarItem.text = `$(clock) ${formatted}`;
+    const settings = this.storageService.getSettings();
+    const period = settings.statusBarPeriod || 'today';
+
+    let timeMs: number;
+    let label: string;
+
+    switch (period) {
+      case 'week':
+        timeMs = this.storageService.getWeekTotalTimeMs();
+        label = '7d';
+        break;
+      case 'month':
+        timeMs = this.storageService.getMonthTotalTimeMs();
+        label = '30d';
+        break;
+      default:
+        timeMs = this.storageService.getOrCreateTodayStats().totalTimeMs;
+        label = '';
+        break;
+    }
+
+    const formatted = formatDurationShort(timeMs);
+    this.statusBarItem.text = label ? `$(clock) ${formatted} (${label})` : `$(clock) ${formatted}`;
   }
 
   /**
@@ -465,6 +485,13 @@ export class TimeTracker implements vscode.Disposable {
    */
   public updateIdleTimeout(timeoutMs: number): void {
     this.activityDetector.setIdleTimeout(timeoutMs);
+  }
+
+  /**
+   * ステータスバーを更新（設定変更時に外部から呼び出し用）
+   */
+  public refreshStatusBar(): void {
+    this.updateStatusBar();
   }
 
   /**

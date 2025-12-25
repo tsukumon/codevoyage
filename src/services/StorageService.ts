@@ -41,6 +41,7 @@ export class StorageService {
       settings: {
         idleTimeoutMs: 300000,
         showStatusBar: true,
+        statusBarPeriod: 'today',
         language: 'ja'
       }
     };
@@ -348,6 +349,46 @@ export class StorageService {
         ? { start: dates[0], end: dates[dates.length - 1] }
         : null
     };
+  }
+
+  /**
+   * 週間の合計時間を取得（今日から過去7日間）
+   */
+  public getWeekTotalTimeMs(): number {
+    const today = new Date();
+    let total = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateKey = date.toISOString().split('T')[0];
+      const stats = this.getDailyStats(dateKey);
+      if (stats) {
+        total += stats.totalTimeMs;
+      }
+    }
+
+    return total;
+  }
+
+  /**
+   * 月間の合計時間を取得（今日から過去30日間）
+   */
+  public getMonthTotalTimeMs(): number {
+    const today = new Date();
+    let total = 0;
+
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateKey = date.toISOString().split('T')[0];
+      const stats = this.getDailyStats(dateKey);
+      if (stats) {
+        total += stats.totalTimeMs;
+      }
+    }
+
+    return total;
   }
 
   /**

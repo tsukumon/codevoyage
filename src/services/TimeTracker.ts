@@ -400,6 +400,12 @@ export class TimeTracker implements vscode.Disposable {
   private handleDocumentChange(event: vscode.TextDocumentChangeEvent): void {
     if (!this.isTracking) return;
 
+    // 通常のファイルと新規ファイルのみカウント（出力パネル等を除外）
+    const scheme = event.document.uri.scheme;
+    if (scheme !== 'file' && scheme !== 'untitled') {
+      return;
+    }
+
     this.activityDetector.recordActivity();
 
     // 編集文字数をカウント
